@@ -11,7 +11,11 @@ import { InventarioModule } from '../inventario/inventario.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notificacion, NotificacionCita, NotificacionInventario]),
+    TypeOrmModule.forFeature([
+      Notificacion,
+      NotificacionCita,
+      NotificacionInventario,
+    ]),
     UserModule,
     MascotaModule,
     InventarioModule,
