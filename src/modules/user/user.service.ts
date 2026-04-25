@@ -163,7 +163,7 @@ export class UserService {
     password: string,
   ): Promise<User | null> {
     const user = await this.userRepository.findOne({
-      where: { username },
+      where: [{ username }, { email: username }],
       relations: ['rol'],
     });
     if (!user) {

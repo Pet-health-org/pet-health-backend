@@ -10,6 +10,7 @@ import {
 import {
   ApiTags,
   ApiOperation,
+  ApiBody,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
@@ -27,9 +28,36 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Iniciar sesión' })
-  @ApiResponse({ status: 200, description: 'Login exitoso' })
-  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
-  async login(@Request() req: any) {
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login exitoso',
+    schema: {
+      example: {
+        access_token: 'jwt_token_here',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description:
+      'No autorizado (credenciales inválidas o usuario inactivo/bloqueado)',
+    schema: {
+      oneOf: [
+        {
+          example: {
+            message: 'Credenciales inválidas',
+          },
+        },
+        {
+          example: {
+            message: 'Usuario inactivo o bloqueado',
+          },
+        },
+      ],
+    },
+  })
+  async login(@Request() req: any, @Body() _loginDto: LoginDto) {
     return this.authService.login(req.user);
   }
 
@@ -38,7 +66,24 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refrescar token' })
   @ApiBearerAuth()
-  @ApiResponse({ status: 200, description: 'Token refrescado exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refrescado exitosamente',
+    schema: {
+      example: {
+        access_token: 'new_jwt_token_here',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado',
+    schema: {
+      example: {
+        message: 'No autorizado',
+      },
+    },
+  })
   async refreshToken(@Request() req: any) {
     return this.authService.refreshToken(req.user.id);
   }
