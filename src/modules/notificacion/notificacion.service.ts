@@ -24,7 +24,9 @@ export class NotificacionService {
     private readonly notificacionInventarioRepository: Repository<NotificacionInventario>,
   ) {}
 
-  async createNotificacion(createDto: CreateNotificacionDto): Promise<Notificacion> {
+  async createNotificacion(
+    createDto: CreateNotificacionDto,
+  ): Promise<Notificacion> {
     const notificacion = this.notificacionRepository.create(createDto);
     return await this.notificacionRepository.save(notificacion);
   }
@@ -47,7 +49,9 @@ export class NotificacionService {
     return notificacion;
   }
 
-  async findNotificacionesByUsuario(usuarioId: string): Promise<Notificacion[]> {
+  async findNotificacionesByUsuario(
+    usuarioId: string,
+  ): Promise<Notificacion[]> {
     return await this.notificacionRepository.find({
       where: { usuarioId },
       order: { fechaCreacion: 'DESC' },
@@ -61,7 +65,10 @@ export class NotificacionService {
     });
   }
 
-  async updateNotificacion(id: string, updateDto: UpdateNotificacionDto): Promise<Notificacion> {
+  async updateNotificacion(
+    id: string,
+    updateDto: UpdateNotificacionDto,
+  ): Promise<Notificacion> {
     const notificacion = await this.findOneNotificacion(id);
     Object.assign(notificacion, updateDto);
     return await this.notificacionRepository.save(notificacion);
@@ -72,7 +79,9 @@ export class NotificacionService {
     await this.notificacionRepository.remove(notificacion);
   }
 
-  async createNotificacionCita(createDto: CreateNotificacionCitaDto): Promise<NotificacionCita> {
+  async createNotificacionCita(
+    createDto: CreateNotificacionCitaDto,
+  ): Promise<NotificacionCita> {
     const notificacion = this.notificacionCitaRepository.create(createDto);
     return await this.notificacionCitaRepository.save(notificacion);
   }
@@ -90,12 +99,17 @@ export class NotificacionService {
       relations: ['cita'],
     });
     if (!notificacion) {
-      throw new NotFoundException(`Notificacion cita con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Notificacion cita con ID ${id} no encontrada`,
+      );
     }
     return notificacion;
   }
 
-  async updateNotificacionCita(id: string, updateDto: UpdateNotificacionCitaDto): Promise<NotificacionCita> {
+  async updateNotificacionCita(
+    id: string,
+    updateDto: UpdateNotificacionCitaDto,
+  ): Promise<NotificacionCita> {
     const notificacion = await this.findOneNotificacionCita(id);
     Object.assign(notificacion, updateDto);
     return await this.notificacionCitaRepository.save(notificacion);
@@ -106,8 +120,11 @@ export class NotificacionService {
     await this.notificacionCitaRepository.remove(notificacion);
   }
 
-  async createNotificacionInventario(createDto: CreateNotificacionInventarioDto): Promise<NotificacionInventario> {
-    const notificacion = this.notificacionInventarioRepository.create(createDto);
+  async createNotificacionInventario(
+    createDto: CreateNotificacionInventarioDto,
+  ): Promise<NotificacionInventario> {
+    const notificacion =
+      this.notificacionInventarioRepository.create(createDto);
     return await this.notificacionInventarioRepository.save(notificacion);
   }
 
@@ -118,18 +135,25 @@ export class NotificacionService {
     });
   }
 
-  async findOneNotificacionInventario(id: string): Promise<NotificacionInventario> {
+  async findOneNotificacionInventario(
+    id: string,
+  ): Promise<NotificacionInventario> {
     const notificacion = await this.notificacionInventarioRepository.findOne({
       where: { id },
       relations: ['inventario', 'notificacion'],
     });
     if (!notificacion) {
-      throw new NotFoundException(`Notificacion inventario con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Notificacion inventario con ID ${id} no encontrada`,
+      );
     }
     return notificacion;
   }
 
-  async updateNotificacionInventario(id: string, updateDto: UpdateNotificacionInventarioDto): Promise<NotificacionInventario> {
+  async updateNotificacionInventario(
+    id: string,
+    updateDto: UpdateNotificacionInventarioDto,
+  ): Promise<NotificacionInventario> {
     const notificacion = await this.findOneNotificacionInventario(id);
     Object.assign(notificacion, updateDto);
     return await this.notificacionInventarioRepository.save(notificacion);
