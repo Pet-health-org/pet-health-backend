@@ -8,7 +8,6 @@ import {
   Delete,
   ParseUUIDPipe,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,13 +16,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { InventarioService } from './inventario.service';
-import {
-  CreateProveedorDto,
-  UpdateProveedorDto,
-  CreateInventarioDto,
-  UpdateInventarioDto,
-} from './dto/inventario.dto';
-import { Proveedor } from './entities/proveedor.entity';
+import { CreateInventarioDto, UpdateInventarioDto } from './dto/inventario.dto';
 import { Inventario } from './entities/inventario.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -37,69 +30,6 @@ import { RoleType } from '../rol/entities/rol.entity';
 export class InventarioController {
   constructor(private readonly inventarioService: InventarioService) {}
 
-  @Post('proveedores')
-  @UseGuards(RolesGuard)
-  @Roles(RoleType.ADMIN)
-  @ApiOperation({ summary: 'Crear un nuevo proveedor' })
-  @ApiResponse({
-    status: 201,
-    description: 'Proveedor creado exitosamente',
-    type: Proveedor,
-  })
-  createProveedor(@Body() createDto: CreateProveedorDto): Promise<Proveedor> {
-    return this.inventarioService.createProveedor(createDto);
-  }
-
-  @Get('proveedores')
-  @ApiOperation({ summary: 'Obtener todos los proveedores' })
-  @ApiResponse({
-    status: 200,
-    description: 'Proveedores obtenidos exitosamente',
-    type: [Proveedor],
-  })
-  findAllProveedores(): Promise<Proveedor[]> {
-    return this.inventarioService.findAllProveedores();
-  }
-
-  @Get('proveedores/:id')
-  @ApiOperation({ summary: 'Obtener un proveedor por ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Proveedor obtenido exitosamente',
-    type: Proveedor,
-  })
-  @ApiResponse({ status: 404, description: 'Proveedor no encontrado' })
-  findOneProveedor(@Param('id', ParseUUIDPipe) id: string): Promise<Proveedor> {
-    return this.inventarioService.findOneProveedor(id);
-  }
-
-  @Patch('proveedores/:id')
-  @UseGuards(RolesGuard)
-  @Roles(RoleType.ADMIN)
-  @ApiOperation({ summary: 'Actualizar un proveedor' })
-  @ApiResponse({
-    status: 200,
-    description: 'Proveedor actualizado exitosamente',
-    type: Proveedor,
-  })
-  @ApiResponse({ status: 404, description: 'Proveedor no encontrado' })
-  updateProveedor(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateDto: UpdateProveedorDto,
-  ): Promise<Proveedor> {
-    return this.inventarioService.updateProveedor(id, updateDto);
-  }
-
-  @Delete('proveedores/:id')
-  @UseGuards(RolesGuard)
-  @Roles(RoleType.ADMIN)
-  @ApiOperation({ summary: 'Eliminar un proveedor' })
-  @ApiResponse({ status: 200, description: 'Proveedor eliminado exitosamente' })
-  @ApiResponse({ status: 404, description: 'Proveedor no encontrado' })
-  removeProveedor(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.inventarioService.removeProveedor(id);
-  }
-
   @Post('inventario')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
@@ -109,10 +39,8 @@ export class InventarioController {
     description: 'Producto creado exitosamente',
     type: Inventario,
   })
-  createInventario(
-    @Body() createDto: CreateInventarioDto,
-  ): Promise<Inventario> {
-    return this.inventarioService.createInventario(createDto);
+  create(@Body() createDto: CreateInventarioDto): Promise<Inventario> {
+    return this.inventarioService.create(createDto);
   }
 
   @Get('inventario')
@@ -122,8 +50,8 @@ export class InventarioController {
     description: 'Inventario obtenido exitosamente',
     type: [Inventario],
   })
-  findAllInventario(): Promise<Inventario[]> {
-    return this.inventarioService.findAllInventario();
+  findAll(): Promise<Inventario[]> {
+    return this.inventarioService.findAll();
   }
 
   @Get('inventario/bajo-stock')
@@ -133,8 +61,8 @@ export class InventarioController {
     description: 'Productos obtenidos exitosamente',
     type: [Inventario],
   })
-  findInventarioBajoStock(): Promise<Inventario[]> {
-    return this.inventarioService.findInventarioBajoStock();
+  findBajoStock(): Promise<Inventario[]> {
+    return this.inventarioService.findBajoStock();
   }
 
   @Get('inventario/proveedor/:proveedorId')
@@ -144,10 +72,10 @@ export class InventarioController {
     description: 'Inventario obtenido exitosamente',
     type: [Inventario],
   })
-  findInventarioByProveedor(
+  findByProveedor(
     @Param('proveedorId', ParseUUIDPipe) proveedorId: string,
   ): Promise<Inventario[]> {
-    return this.inventarioService.findInventarioByProveedor(proveedorId);
+    return this.inventarioService.findByProveedor(proveedorId);
   }
 
   @Get('inventario/tipo/:tipo')
@@ -157,8 +85,8 @@ export class InventarioController {
     description: 'Inventario obtenido exitosamente',
     type: [Inventario],
   })
-  findInventarioByTipo(@Param('tipo') tipo: string): Promise<Inventario[]> {
-    return this.inventarioService.findInventarioByTipo(tipo);
+  findByTipo(@Param('tipo') tipo: string): Promise<Inventario[]> {
+    return this.inventarioService.findByTipo(tipo);
   }
 
   @Get('inventario/:id')
@@ -169,10 +97,8 @@ export class InventarioController {
     type: Inventario,
   })
   @ApiResponse({ status: 404, description: 'Producto no encontrado' })
-  findOneInventario(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<Inventario> {
-    return this.inventarioService.findOneInventario(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Inventario> {
+    return this.inventarioService.findOne(id);
   }
 
   @Patch('inventario/:id')
@@ -185,11 +111,11 @@ export class InventarioController {
     type: Inventario,
   })
   @ApiResponse({ status: 404, description: 'Producto no encontrado' })
-  updateInventario(
+  update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateInventarioDto,
   ): Promise<Inventario> {
-    return this.inventarioService.updateInventario(id, updateDto);
+    return this.inventarioService.update(id, updateDto);
   }
 
   @Patch('inventario/:id/stock')
@@ -214,7 +140,7 @@ export class InventarioController {
   @ApiOperation({ summary: 'Eliminar un producto' })
   @ApiResponse({ status: 200, description: 'Producto eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado' })
-  removeInventario(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.inventarioService.removeInventario(id);
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.inventarioService.remove(id);
   }
 }

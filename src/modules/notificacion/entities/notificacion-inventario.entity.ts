@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
 import { Inventario } from '../../inventario/entities/inventario.entity';
 import { Notificacion } from './notificacion.entity';
 
