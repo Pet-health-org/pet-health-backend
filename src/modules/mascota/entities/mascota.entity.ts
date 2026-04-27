@@ -4,13 +4,9 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
-  OneToOne,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { Raza } from '../../especie/entities/raza.entity';
-import { Cita } from './cita.entity';
-import { HistoriaClinica } from './historia-clinica.entity';
+import { Raza } from '../../raza/entities/raza.entity';
 
 @Entity('mascotas')
 export class Mascota {

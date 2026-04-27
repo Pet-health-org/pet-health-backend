@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Proveedor } from './proveedor.entity';
+import { Proveedor } from '../../proveedor/entities/proveedor.entity';
 
 @Entity('inventarios')
 export class Inventario {

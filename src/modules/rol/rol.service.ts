@@ -7,15 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Rol } from './entities/rol.entity';
 import { CreateRolDto, UpdateRolDto } from './dto/rol.dto';
-import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class RolService {
   constructor(
     @InjectRepository(Rol)
     private readonly rolRepository: Repository<Rol>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createRolDto: CreateRolDto): Promise<Rol> {
@@ -46,13 +43,10 @@ export class RolService {
     return rol;
   }
 
-  async findByNome(name: Rol['name']): Promise<Rol> {
+  async findByName(name: Rol['name']): Promise<Rol | null> {
     const rol = await this.rolRepository.findOne({
       where: { name },
     });
-    if (!rol) {
-      throw new NotFoundException(`Rol con nombre ${name} no encontrado`);
-    }
     return rol;
   }
 
@@ -72,14 +66,6 @@ export class RolService {
 
   async remove(id: string): Promise<void> {
     const rol = await this.findOne(id);
-    const usersCount = await this.userRepository.count({
-      where: { rol: { id: id } },
-    });
-    if (usersCount > 0) {
-      throw new ConflictException(
-        'No se puede eliminar el rol porque tiene usuarios asignados',
-      );
-    }
     await this.rolRepository.remove(rol);
   }
 }

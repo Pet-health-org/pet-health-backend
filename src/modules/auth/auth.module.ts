@@ -7,9 +7,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
 import { User } from '../user/entities/user.entity';
-import { Rol } from '../rol/entities/rol.entity';
 
 @Module({
   imports: [
@@ -24,10 +23,11 @@ import { Rol } from '../rol/entities/rol.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Rol]),
+    TypeOrmModule.forFeature([User]),
+    UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy, UserService],
+  providers: [AuthService, JwtStrategy, LocalStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

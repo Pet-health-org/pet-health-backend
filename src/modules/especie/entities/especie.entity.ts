@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Raza } from './raza.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('especies')
 export class Especie {
@@ -14,7 +13,4 @@ export class Especie {
 
   @Column('text', { nullable: true })
   observaciones: string;
-
-  @OneToMany(() => Raza, (raza) => raza.especie)
-  razas: Raza[];
 }

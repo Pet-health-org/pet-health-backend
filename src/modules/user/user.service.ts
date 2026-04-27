@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from './entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { RolService } from '../rol/rol.service';
 import { Rol, RoleType } from '../rol/entities/rol.entity';
 
 @Injectable()
@@ -16,8 +17,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Rol)
-    private readonly rolRepository: Repository<Rol>,
+    private readonly rolService: RolService,
   ) {}
 
   private async hashPassword(password: string): Promise<string> {
@@ -48,7 +48,7 @@ export class UserService {
       throw new ConflictException('El nombre de usuario ya está en uso');
     }
 
-    const rol = await this.rolRepository.findOne({ where: { name: rolId } });
+    const rol = await this.rolService.findByName(rolId);
     if (!rol) {
       throw new BadRequestException(
         `Rol ${rolId} no existe. Roles válidos: admin, veterinario, recepcionista, propietario`,
@@ -129,9 +129,7 @@ export class UserService {
     }
 
     if (updateUserDto.rolId) {
-      const rol = await this.rolRepository.findOne({
-        where: { name: updateUserDto.rolId },
-      });
+      const rol = await this.rolService.findByName(updateUserDto.rolId);
       if (!rol) {
         throw new BadRequestException(`Rol ${updateUserDto.rolId} no existe`);
       }
