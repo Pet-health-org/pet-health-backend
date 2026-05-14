@@ -4,10 +4,13 @@ import {
   IsUUID,
   IsOptional,
   IsNumber,
+  IsEnum,
+  IsPositive,
   Min,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { EspecieMascota } from '../entities/mascota.entity';
 
 export class CreateMascotaDto {
   @ApiProperty({ example: 'uuid-propietario' })
@@ -15,16 +18,21 @@ export class CreateMascotaDto {
   @IsNotEmpty()
   propietarioId: string;
 
-  @ApiProperty({ example: 'uuid-raza' })
+  @ApiPropertyOptional({ example: 'uuid-raza' })
+  @IsOptional()
   @IsUUID()
-  @IsNotEmpty()
-  razaId: string;
+  razaId?: string;
 
   @ApiProperty({ example: 'Firulais' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   nombre: string;
+
+  @ApiProperty({ enum: EspecieMascota, example: EspecieMascota.PERRO })
+  @IsEnum(EspecieMascota)
+  @IsNotEmpty()
+  especie: EspecieMascota;
 
   @ApiProperty({ example: 3 })
   @IsNumber()
@@ -41,7 +49,7 @@ export class CreateMascotaDto {
   @ApiProperty({ example: 15.5 })
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @IsPositive()
   peso: number;
 
   @ApiPropertyOptional({ example: 'Café' })
@@ -70,6 +78,11 @@ export class UpdateMascotaDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsEnum(EspecieMascota)
+  especie?: EspecieMascota;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsNumber()
   @Min(0)
   edad?: number;
@@ -83,7 +96,7 @@ export class UpdateMascotaDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
-  @Min(0)
+  @IsPositive()
   peso?: number;
 
   @ApiPropertyOptional()
