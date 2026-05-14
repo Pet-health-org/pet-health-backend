@@ -1,8 +1,32 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+
+function formatValidationErrors(
+  validationErrors: ValidationError[],
+): Record<string, string[]> {
+  return validationErrors.reduce<Record<string, string[]>>((errors, error) => {
+    const messages = error.constraints ? Object.values(error.constraints) : [];
+    if (messages.length > 0) {
+      errors[error.property] = messages;
+    }
+
+    if (error.children && error.children.length > 0) {
+      const childErrors = formatValidationErrors(error.children);
+      for (const [field, fieldMessages] of Object.entries(childErrors)) {
+        errors[`${error.property}.${field}`] = fieldMessages;
+      }
+    }
+
+    return errors;
+  }, {});
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +42,11 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      exceptionFactory: (validationErrors: ValidationError[] = []) =>
+        new BadRequestException({
+          message: 'Errores de validacion',
+          errors: formatValidationErrors(validationErrors),
+        }),
     }),
   );
 
@@ -37,4 +66,4 @@ async function bootstrap() {
   console.log(`Application running on http://localhost:${port}`);
   console.log(`Swagger documentation: http://localhost:${port}/docs`);
 }
-bootstrap();
+void bootstrap();

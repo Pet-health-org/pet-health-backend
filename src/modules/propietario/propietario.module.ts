@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PropietarioController } from './propietario.controller';
-import { Propietario } from './entities/propietario.entity';
-import { UserModule } from '../user/user.module';
+import { PropietarioService } from './propietario.service';
+import { RolModule } from '../rol/rol.module';
+import { User } from '../user/entities/user.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Propietario]),
-    UserModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User]), RolModule],
   controllers: [PropietarioController],
+  providers: [PropietarioService],
+  exports: [PropietarioService],
 })
 export class PropietarioModule {}
