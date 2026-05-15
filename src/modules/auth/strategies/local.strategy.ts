@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { UserService } from '../../user/user.service';
+import { UserStatus } from '../../user/entities/user.entity';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +18,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    if (user.status !== 'activo') {
+    if (user.status !== UserStatus.ACTIVO) {
       throw new UnauthorizedException('Usuario inactivo o bloqueado');
     }
     return {

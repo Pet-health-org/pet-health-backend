@@ -31,8 +31,10 @@ export class AuthService {
       username: user.username,
       rol: user.rol,
     };
-    const secret = this.configService.get<string>('JWT_SECRET') || 'default_secret';
-    const expiresIn = this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
+    const secret =
+      this.configService.get<string>('JWT_SECRET') || 'default_secret';
+    const expiresIn =
+      this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
     const token = await this.jwtService.signAsync(payload as any, {
       secret,
       expiresIn,
@@ -49,8 +51,10 @@ export class AuthService {
       username: user.username,
       rol: user.rol.name,
     };
-    const secret = this.configService.get<string>('JWT_SECRET') || 'default_secret';
-    const expiresIn = this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
+    const secret =
+      this.configService.get<string>('JWT_SECRET') || 'default_secret';
+    const expiresIn =
+      this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
     const token = await this.jwtService.signAsync(payload as any, {
       secret,
       expiresIn,

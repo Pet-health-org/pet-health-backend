@@ -1,5 +1,20 @@
-import { Controller, Get, Param, ParseUUIDPipe, Patch, Body, Delete, UseGuards, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Body,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UserService } from '../user/user.service';
 import { UpdateUserDto } from '../user/dto/user.dto';
 import { User } from '../user/entities/user.entity';
@@ -18,14 +33,22 @@ export class AdminController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los administradores' })
-  @ApiResponse({ status: 200, description: 'Administradores obtenidos exitosamente', type: [User] })
+  @ApiResponse({
+    status: 200,
+    description: 'Administradores obtenidos exitosamente',
+    type: [User],
+  })
   findAll(): Promise<User[]> {
     return this.userService.findByRol(RoleType.ADMIN);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un administrador por ID' })
-  @ApiResponse({ status: 200, description: 'Administrador obtenido exitosamente', type: User })
+  @ApiResponse({
+    status: 200,
+    description: 'Administrador obtenido exitosamente',
+    type: User,
+  })
   @ApiResponse({ status: 404, description: 'Administrador no encontrado' })
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
     return this.userService.findOne(id);
@@ -33,7 +56,11 @@ export class AdminController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un administrador' })
-  @ApiResponse({ status: 200, description: 'Administrador actualizado exitosamente', type: User })
+  @ApiResponse({
+    status: 200,
+    description: 'Administrador actualizado exitosamente',
+    type: User,
+  })
   @ApiResponse({ status: 404, description: 'Administrador no encontrado' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -44,7 +71,10 @@ export class AdminController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un administrador' })
-  @ApiResponse({ status: 200, description: 'Administrador eliminado exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Administrador eliminado exitosamente',
+  })
   @ApiResponse({ status: 404, description: 'Administrador no encontrado' })
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.userService.remove(id);

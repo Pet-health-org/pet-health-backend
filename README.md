@@ -1,98 +1,232 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Pet Health Backend (NestJS + TypeORM + MySQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend del sistema PetHealth. API REST con autenticacion JWT, Swagger en desarrollo y persistencia en MySQL via TypeORM.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Requisitos
 
-## Description
+- Node.js (recomendado: LTS)
+- MySQL 8+ (o compatible)
+- npm
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Configuracion
 
-## Project setup
+1. Instalar dependencias:
+   ```bash
+   npm install
+   ```
+2. Crear `.env` a partir de `.env.example` (raiz del repo).
+3. Asegurar que MySQL esta corriendo y que la BD existe (`DB_NAME`).
 
-```bash
-$ npm install
+Variables principales (ver `.env.example`):
+
+- DB: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`
+- TypeORM: `DB_SYNCHRONIZE` (en dev puede ir `true`), `DB_LOGGING`
+- JWT: `JWT_SECRET`, `JWT_EXPIRES_IN`
+- App: `PORT`, `NODE_ENV`
+
+## Ejecutar
+
+- Desarrollo (watch):
+  ```bash
+  npm run start:dev
+  ```
+- Produccion:
+  ```bash
+  npm run build
+  npm run start:prod
+  ```
+
+Cuando `NODE_ENV != production`:
+
+- Swagger: `http://localhost:<PORT>/docs`
+- CORS habilitado
+
+## Seed (usuario admin)
+
+En el arranque, el `SeederService` crea roles y un usuario admin si no existen.
+
+- Email: `admin@pethealth.com`
+- Password: `Admin123!`
+
+## Autenticacion (JWT)
+
+1. Login:
+   - `POST /auth/login`
+   - Body:
+     ```json
+     { "username": "admin@pethealth.com", "password": "Admin123!" }
+     ```
+   - Respuesta:
+     ```json
+     { "access_token": "<jwt>" }
+     ```
+2. Usar token en requests:
+   - Header: `Authorization: Bearer <jwt>`
+
+## Roles
+
+Roles definidos:
+
+- `admin`
+- `veterinario`
+- `recepcionista`
+- `propietario`
+
+Cada endpoint documenta roles requeridos en Swagger.
+
+## Endpoints (resumen)
+
+### Propietarios
+
+Nota: un "propietario" se maneja como un `user` con rol `propietario`.
+
+- `POST /propietarios` (admin, recepcionista)
+  - Crea un propietario (valida email, campos obligatorios y unicidad de `numeroIdentificacion`).
+  - `201` OK: retorna el objeto creado con `id` UUID.
+  - `409` si `numeroIdentificacion` ya existe (tambien valida duplicados de `email` y `username`).
+  - Seguridad: nunca retorna `password` (se hashea con bcrypt).
+
+- `GET /propietarios?q=<termino>&page=1&limit=20` (admin, recepcionista)
+  - Busca simultaneamente en `nombreCompleto`, `numeroIdentificacion`, `telefono`.
+  - Busqueda parcial (`LIKE %termino%`).
+  - Paginacion con maximo 20 por pagina.
+  - Siempre retorna `200` con array (puede ser `[]`).
+
+- `GET /propietarios/:id` (admin, recepcionista)
+
+### Mascotas
+
+- `POST /mascotas` (admin, recepcionista, propietario)
+  - Verifica que `propietarioId` exista (si no: `404`).
+  - `peso` debe ser > 0.
+  - `especie` controlada (enum): `perro`, `gato`, `ave`, `otro`.
+  - `id` se genera automaticamente (UUID).
+
+### Especies y constantes vitales
+
+- `GET /especies/:especieId/constantes` (autenticado)
+  - Retorna rangos de temperatura, frecuencia cardíaca y frecuencia respiratoria con valores `minimo`, `maximo`, `unidad`.
+  - Los rangos se almacenan como JSON estructurado en la entidad `Especie`.
+  - `404` si la especie no existe o no tiene rangos definidos.
+
+- `PUT /especies/:especieId/constantes` (admin)
+  - Body esperado:
+    ```json
+    {
+      "temperatura": { "minimo": 38.0, "maximo": 39.2, "unidad": "°C" },
+      "frecuenciaCardiaca": { "minimo": 60, "maximo": 120, "unidad": "lpm" },
+      "frecuenciaRespiratoria": { "minimo": 10, "maximo": 30, "unidad": "rpm" }
+    }
+    ```
+
+### Citas
+
+- `POST /citas` (admin, recepcionista)
+  - Valida horario laboral (lunes a sábado 7:00 AM - 7:00 PM).
+  - Valida que el veterinario no tenga otra cita en el mismo horario (duración mínima 30 min).
+  - Si hay conflicto → `409 Conflict` con:
+    - `conflictoCon`: la cita existente que genera el solapamiento
+    - `horariosAlternativos`: hasta 3 bloques disponibles de 30 min en el mismo día
+  - `201 Created` en éxito.
+  - Dispara automáticamente notificación por correo al propietario vía `NotificacionService`.
+
+### Disponibilidad de veterinarios
+
+- `GET /veterinarios/:id/disponibilidad?fecha=2026-05-15`
+  - Retorna bloques de 30 min con estado `disponible` u `ocupado`.
+  - Horario laboral: lunes a sábado 7:00 AM - 7:00 PM. Domingos retorna `[]`.
+
+- `GET /veterinarios/disponibilidad?fecha=2026-05-15`
+  - Mismo formato pero para todos los veterinarios.
+
+### Consultas
+
+- `POST /consultas` (admin, veterinario)
+  - Campos: `mascotaId`, `motivo`, `anamnesis`, `constantesVitales`, `diagnostico`, `tratamiento`, `observaciones`, `justificacion`.
+  - `fecha` se asigna automáticamente con la hora del servidor.
+  - Valida cada constante vital contra los rangos definidos en la especie de la mascota (vía Raza → Especie).
+  - Si hay valores fuera de rango:
+    - Sin `justificacion` → `400 Bad Request` con detalle de alertas.
+    - Con `justificacion` → `201 Created` e incluye campo `alertas` en la respuesta.
+  - `constantesVitales` esperado (opcional):
+    ```json
+    {
+      "temperatura": { "valor": 38.5, "unidad": "°C" },
+      "frecuenciaCardiaca": { "valor": 85, "unidad": "lpm" },
+      "frecuenciaRespiratoria": { "valor": 20, "unidad": "rpm" }
+    }
+    ```
+
+## Errores de validacion (formato unificado)
+
+Las validaciones de DTO se devuelven en un unico objeto con detalle por campo:
+
+```json
+{
+  "message": "Errores de validacion",
+  "errors": {
+    "email": ["email must be an email"],
+    "telefono": ["telefono should not be empty"]
+  }
+}
 ```
 
-## Compile and run the project
+## Instrucciones para Frontend
 
-```bash
-# development
-$ npm run start
+### Base URL
 
-# watch mode
-$ npm run start:dev
+Por defecto en desarrollo:
 
-# production mode
-$ npm run start:prod
-```
+- `http://localhost:3000`
 
-## Run tests
+En el frontend usar:
 
-```bash
-# unit tests
-$ npm run test
+- `API_BASE_URL=http://localhost:3000` (o variable equivalente)
 
-# e2e tests
-$ npm run test:e2e
+### Flujo recomendado
 
-# test coverage
-$ npm run test:cov
-```
+1. Autenticar con `POST /auth/login` y guardar `access_token`.
+2. En cada request protegida agregar:
+   - `Authorization: Bearer <token>`
+3. Manejo de respuestas:
+   - `401`: token invalido/expirado
+   - `403`: rol no autorizado para el endpoint
+   - `409`: conflicto por duplicados (ej: `numeroIdentificacion`)
+   - `400`: validaciones (usar `errors` para pintar mensajes por campo)
 
-## Deployment
+### Ejemplos rapidos (frontend)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- Buscar propietarios:
+  - `GET /propietarios?q=juan&page=1&limit=20`
+- Crear propietario:
+  - `POST /propietarios`
+  - Body (ejemplo):
+    ```json
+    {
+      "username": "prop1",
+      "email": "prop1@mail.com",
+      "password": "Secret123!",
+      "nombreCompleto": "Juan Perez",
+      "numeroIdentificacion": "1020304050",
+      "telefono": "3001234567"
+    }
+    ```
+- Crear mascota:
+  - `POST /mascotas`
+  - Body (ejemplo):
+    ```json
+    {
+      "propietarioId": "<uuid>",
+      "nombre": "Firulais",
+      "especie": "perro",
+      "edad": 3,
+      "sexo": "macho",
+      "peso": 12.5
+    }
+    ```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Documentacion tecnica (HU)
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Detalle completo de HU-B01/B02/B03:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `docs/HU-B01-B03-propietarios-mascotas.md`
