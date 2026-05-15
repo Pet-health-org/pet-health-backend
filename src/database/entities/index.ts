@@ -16,6 +16,7 @@ import { Inventario } from '../../modules/inventario/entities/inventario.entity'
 import { Reporte } from '../../modules/reporte/entities/reporte.entity';
 import { Notificacion } from '../../modules/notificacion/entities/notificacion.entity';
 import { NotificacionInventario } from '../../modules/notificacion-inventario/entities/notificacion-inventario.entity';
+import { Consulta } from '../../modules/consulta/entities/consulta.entity';
 
 export const entities = [
   Rol,
@@ -36,6 +37,7 @@ export const entities = [
   Reporte,
   Notificacion,
   NotificacionInventario,
+  Consulta,
 ];
 
 export type EntityClass =
@@ -56,4 +58,5 @@ export type EntityClass =
   | typeof Inventario
   | typeof Reporte
   | typeof Notificacion
-  | typeof NotificacionInventario;
+  | typeof NotificacionInventario
+  | typeof Consulta;

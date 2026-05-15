@@ -24,6 +24,7 @@ import { InventarioModule } from './modules/inventario/inventario.module';
 import { ReporteModule } from './modules/reporte/reporte.module';
 import { NotificacionModule } from './modules/notificacion/notificacion.module';
 import { NotificacionInventarioModule } from './modules/notificacion-inventario/notificacion-inventario.module';
+import { ConsultaModule } from './modules/consulta/consulta.module';
 import { SeederService } from './common/seeder.service';
 
 @Module({
@@ -49,6 +50,7 @@ import { SeederService } from './common/seeder.service';
     ReporteModule,
     NotificacionModule,
     NotificacionInventarioModule,
+    ConsultaModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],
