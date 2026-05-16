@@ -2,15 +2,19 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { CreatePropietarioDto } from './dto/propietario.dto';
 import { RolService } from '../rol/rol.service';
 import { RoleType } from '../rol/entities/rol.entity';
 import { User, UserStatus } from '../user/entities/user.entity';
+import { CreateUserDto } from '../user/dto/user.dto';
+import { HashService } from '../../common/hash.service';
+import { paginationConfig } from '../../config/configuration';
 
 export type PropietarioResponse = Omit<User, 'password'>;
 
@@ -20,6 +24,9 @@ export class PropietarioService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly rolService: RolService,
+    private readonly hashService: HashService,
+    @Inject(paginationConfig.KEY)
+    private readonly paginationConf: ConfigType<typeof paginationConfig>,
   ) {}
 
   async create(createDto: CreatePropietarioDto): Promise<PropietarioResponse> {
@@ -30,7 +37,7 @@ export class PropietarioService {
       throw new BadRequestException('El rol propietario no existe');
     }
 
-    const hashedPassword = await bcrypt.hash(createDto.password, 10);
+    const hashedPassword = await this.hashService.hash(createDto.password);
     const propietario = this.userRepository.create({
       ...createDto,
       password: hashedPassword,
@@ -43,15 +50,56 @@ export class PropietarioService {
     return this.toResponse(saved);
   }
 
+  async createFromUser(createUserDto: CreateUserDto): Promise<User> {
+    const { email, username, password, nombreCompleto } = createUserDto;
+
+    const existingEmail = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (existingEmail) {
+      throw new ConflictException('El email ya está registrado');
+    }
+
+    const existingUsername = await this.userRepository.findOne({
+      where: { username },
+    });
+    if (existingUsername) {
+      throw new ConflictException('El nombre de usuario ya está en uso');
+    }
+
+    const rol = await this.rolService.findByName(RoleType.PROPIETARIO);
+    if (!rol) {
+      throw new BadRequestException('El rol propietario no existe');
+    }
+
+    const hashedPassword = await this.hashService.hash(password);
+    const propietario = this.userRepository.create({
+      username,
+      email,
+      password: hashedPassword,
+      nombreCompleto: nombreCompleto || null,
+      rol,
+      status: UserStatus.ACTIVO,
+      isActive: true,
+    });
+
+    return await this.userRepository.save(propietario);
+  }
+
   async search(
     q?: string,
     page = 1,
-    limit = 20,
+    limit = this.paginationConf.defaultLimit,
   ): Promise<PropietarioResponse[]> {
     const safePage = Number.isFinite(page) && page > 0 ? page : 1;
     const safeLimit = Math.min(
-      Math.max(Number.isFinite(limit) && limit > 0 ? limit : 20, 1),
-      20,
+      Math.max(
+        Number.isFinite(limit) && limit > 0
+          ? limit
+          : this.paginationConf.defaultLimit,
+        1,
+      ),
+      this.paginationConf.maxLimit,
     );
 
     const query = this.userRepository

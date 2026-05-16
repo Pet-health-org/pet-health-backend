@@ -69,7 +69,9 @@ export class EspecieController {
   }
 
   @Get('especies/:especieId/constantes')
-  @ApiOperation({ summary: 'Obtener rangos de constantes vitales de una especie' })
+  @ApiOperation({
+    summary: 'Obtener rangos de constantes vitales de una especie',
+  })
   @ApiResponse({
     status: 200,
     description: 'Rangos de constantes vitales obtenidos exitosamente',
@@ -85,7 +87,9 @@ export class EspecieController {
   @Put('especies/:especieId/constantes')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
-  @ApiOperation({ summary: 'Actualizar rangos de constantes vitales de una especie' })
+  @ApiOperation({
+    summary: 'Actualizar rangos de constantes vitales de una especie',
+  })
   @ApiResponse({
     status: 200,
     description: 'Rangos de constantes vitales actualizados exitosamente',

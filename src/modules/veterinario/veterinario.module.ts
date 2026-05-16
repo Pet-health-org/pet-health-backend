@@ -1,16 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { VeterinarioController } from './veterinario.controller';
-import { Veterinario } from './entities/veterinario.entity';
 import { UserModule } from '../user/user.module';
-import { CitaModule } from '../cita/cita.module';
+import { HorarioModule } from '../horario/horario.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Veterinario]),
-    UserModule,
-    CitaModule,
-  ],
+  imports: [UserModule, HorarioModule],
   controllers: [VeterinarioController],
 })
 export class VeterinarioModule {}

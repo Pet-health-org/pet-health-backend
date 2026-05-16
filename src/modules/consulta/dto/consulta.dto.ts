@@ -92,7 +92,9 @@ export class CreateConsultaDto {
   @IsString()
   observaciones?: string;
 
-  @ApiPropertyOptional({ example: 'El paciente presenta taquicardia fisiológica por estrés' })
+  @ApiPropertyOptional({
+    example: 'El paciente presenta taquicardia fisiológica por estrés',
+  })
   @IsOptional()
   @IsString()
   justificacion?: string;

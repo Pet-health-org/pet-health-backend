@@ -5,7 +5,9 @@ import {
   Query,
   ParseUUIDPipe,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import {
   ApiTags,
   ApiOperation,
@@ -15,15 +17,12 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
-import { CitaService } from '../cita/cita.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
-
-const HORA_INICIO = 7;
-const HORA_FIN = 19;
-const DURACION_MINUTOS = 30;
+import { HorarioService } from '../horario/horario.service';
+import { horarioConfig } from '../../config/configuration';
 
 @ApiTags('Veterinarios')
 @ApiBearerAuth()
@@ -33,19 +32,21 @@ const DURACION_MINUTOS = 30;
 export class VeterinarioController {
   constructor(
     private readonly userService: UserService,
-    private readonly citaService: CitaService,
+    private readonly horarioService: HorarioService,
+    @Inject(horarioConfig.KEY)
+    private readonly horarioConf: ConfigType<typeof horarioConfig>,
   ) {}
 
   @Get('disponibilidad')
-  @ApiOperation({ summary: 'Obtener disponibilidad de todos los veterinarios en una fecha' })
+  @ApiOperation({
+    summary: 'Obtener disponibilidad de todos los veterinarios en una fecha',
+  })
   @ApiQuery({ name: 'fecha', required: true, example: '2026-05-15' })
   @ApiResponse({
     status: 200,
     description: 'Disponibilidad obtenida exitosamente',
   })
-  async getDisponibilidadGeneral(
-    @Query('fecha') fecha: string,
-  ): Promise<any> {
+  async getDisponibilidadGeneral(@Query('fecha') fecha: string): Promise<any> {
     const fechaDate = new Date(fecha + 'T00:00:00Z');
     const veterinarios = await this.userService.findByRol(RoleType.VETERINARIO);
     const resultado: any[] = [];
@@ -67,7 +68,9 @@ export class VeterinarioController {
   }
 
   @Get(':id/disponibilidad')
-  @ApiOperation({ summary: 'Obtener disponibilidad de un veterinario en una fecha' })
+  @ApiOperation({
+    summary: 'Obtener disponibilidad de un veterinario en una fecha',
+  })
   @ApiQuery({ name: 'fecha', required: true, example: '2026-05-15' })
   @ApiResponse({
     status: 200,
@@ -98,28 +101,26 @@ export class VeterinarioController {
       return [];
     }
 
-    const bloquesOcupados = await this.citaService.obtenerBloquesOcupados(
+    const bloquesOcupados = await this.horarioService.obtenerBloquesOcupados(
       veterinarioId,
       fecha,
     );
 
     const bloques: any[] = [];
     const inicioJornada = new Date(fecha);
-    inicioJornada.setHours(HORA_INICIO, 0, 0, 0);
+    inicioJornada.setHours(this.horarioConf.horaInicio, 0, 0, 0);
     const finJornada = new Date(fecha);
-    finJornada.setHours(HORA_FIN, 0, 0, 0);
+    finJornada.setHours(this.horarioConf.horaFin, 0, 0, 0);
 
     let inicioBloque = new Date(inicioJornada);
 
     while (inicioBloque < finJornada) {
       const finBloque = new Date(
-        inicioBloque.getTime() + DURACION_MINUTOS * 60 * 1000,
+        inicioBloque.getTime() + this.horarioConf.duracionMinutos * 60 * 1000,
       );
 
       const ocupado = bloquesOcupados.some((bloque) => {
-        return (
-          inicioBloque < bloque.fin && finBloque > bloque.inicio
-        );
+        return inicioBloque < bloque.fin && finBloque > bloque.inicio;
       });
 
       bloques.push({

@@ -14,7 +14,9 @@ export class NotificacionInventarioService {
     private readonly repo: Repository<NotificacionInventario>,
   ) {}
 
-  async create(createDto: CreateNotificacionInventarioDto): Promise<NotificacionInventario> {
+  async create(
+    createDto: CreateNotificacionInventarioDto,
+  ): Promise<NotificacionInventario> {
     const entity = this.repo.create(createDto);
     return await this.repo.save(entity);
   }
@@ -32,7 +34,9 @@ export class NotificacionInventarioService {
       relations: ['inventario', 'notificacion'],
     });
     if (!entity) {
-      throw new NotFoundException(`Notificacion inventario con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Notificacion inventario con ID ${id} no encontrada`,
+      );
     }
     return entity;
   }

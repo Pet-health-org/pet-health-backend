@@ -32,7 +32,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT', 3000);
+  const port = configService.get<number>('app.port', 3000);
+  const nodeEnv = configService.get<string>('app.nodeEnv', 'development');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -50,7 +51,7 @@ async function bootstrap() {
     }),
   );
 
-  if (configService.get<string>('NODE_ENV') !== 'production') {
+  if (nodeEnv !== 'production') {
     app.enableCors();
     const swaggerConfig = new DocumentBuilder()
       .setTitle('PetHealth API')

@@ -1,9 +1,5 @@
 import { Rol } from '../../modules/rol/entities/rol.entity';
 import { User } from '../../modules/user/entities/user.entity';
-import { Admin } from '../../modules/admin/entities/admin.entity';
-import { Veterinario } from '../../modules/veterinario/entities/veterinario.entity';
-import { Recepcionista } from '../../modules/recepcionista/entities/recepcionista.entity';
-import { Propietario } from '../../modules/propietario/entities/propietario.entity';
 import { Especie } from '../../modules/especie/entities/especie.entity';
 import { Raza } from '../../modules/raza/entities/raza.entity';
 import { Mascota } from '../../modules/mascota/entities/mascota.entity';
@@ -21,10 +17,6 @@ import { Consulta } from '../../modules/consulta/entities/consulta.entity';
 export const entities = [
   Rol,
   User,
-  Admin,
-  Veterinario,
-  Recepcionista,
-  Propietario,
   Especie,
   Raza,
   Mascota,
@@ -43,10 +35,6 @@ export const entities = [
 export type EntityClass =
   | typeof Rol
   | typeof User
-  | typeof Admin
-  | typeof Veterinario
-  | typeof Recepcionista
-  | typeof Propietario
   | typeof Especie
   | typeof Raza
   | typeof Mascota

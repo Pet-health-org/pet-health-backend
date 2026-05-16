@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notificacion } from './entities/notificacion.entity';
-import { CreateNotificacionDto, UpdateNotificacionDto } from './dto/notificacion.dto';
+import {
+  CreateNotificacionDto,
+  UpdateNotificacionDto,
+} from './dto/notificacion.dto';
 
 @Injectable()
 export class NotificacionService {
@@ -48,7 +51,10 @@ export class NotificacionService {
     });
   }
 
-  async update(id: string, updateDto: UpdateNotificacionDto): Promise<Notificacion> {
+  async update(
+    id: string,
+    updateDto: UpdateNotificacionDto,
+  ): Promise<Notificacion> {
     const notificacion = await this.findOne(id);
     Object.assign(notificacion, updateDto);
     return await this.notificacionRepository.save(notificacion);

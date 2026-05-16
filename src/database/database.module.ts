@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { databaseConfig } from '../config/database.config';
+import configurations from '../config/configuration';
 import { entities } from './entities';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [databaseConfig],
+      load: configurations,
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -22,7 +22,7 @@ import { entities } from './entities';
         entities: entities,
         synchronize: configService.get<boolean>('database.synchronize'),
         logging: configService.get<boolean>('database.logging'),
-        connectorPackage:'mysql2'
+        connectorPackage: 'mysql2',
       }),
       inject: [ConfigService],
     }),

@@ -3,6 +3,7 @@ import { DatabaseModule } from './database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SharedModule } from './common/shared.module';
 import { Rol } from './modules/rol/entities/rol.entity';
 import { User } from './modules/user/entities/user.entity';
 import { RolModule } from './modules/rol/rol.module';
@@ -30,6 +31,7 @@ import { SeederService } from './common/seeder.service';
 @Module({
   imports: [
     DatabaseModule,
+    SharedModule,
     TypeOrmModule.forFeature([Rol, User]),
     RolModule,
     UserModule,

@@ -6,33 +6,49 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User, UserStatus } from './entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { RolService } from '../rol/rol.service';
-import { Rol, RoleType } from '../rol/entities/rol.entity';
+import { RoleType } from '../rol/entities/rol.entity';
+import { PropietarioService } from '../propietario/propietario.service';
+import { HashService } from '../../common/hash.service';
+import { IUserService } from '../../common/interfaces/iuser-service.interface';
+
+type UserCreationHandler = (dto: CreateUserDto) => Promise<User>;
 
 @Injectable()
-export class UserService {
+export class UserService implements IUserService {
+  private readonly roleHandlers: Map<string, UserCreationHandler>;
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly rolService: RolService,
-  ) {}
-
-  private async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, 10);
-  }
-
-  private async comparePassword(
-    password: string,
-    hash: string,
-  ): Promise<boolean> {
-    return await bcrypt.compare(password, hash);
+    private readonly propietarioService: PropietarioService,
+    private readonly hashService: HashService,
+  ) {
+    this.roleHandlers = new Map([
+      [
+        RoleType.PROPIETARIO,
+        (dto) => this.propietarioService.createFromUser(dto),
+      ],
+    ]);
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { email, username, password, rolId } = createUserDto;
+
+    const rol = await this.rolService.findByName(rolId);
+    if (!rol) {
+      throw new BadRequestException(
+        `Rol ${rolId} no existe. Roles válidos: admin, veterinario, recepcionista, propietario`,
+      );
+    }
+
+    const handler = this.roleHandlers.get(rolId);
+    if (handler) {
+      return handler(createUserDto);
+    }
 
     const existingEmail = await this.userRepository.findOne({
       where: { email },
@@ -48,14 +64,7 @@ export class UserService {
       throw new ConflictException('El nombre de usuario ya está en uso');
     }
 
-    const rol = await this.rolService.findByName(rolId);
-    if (!rol) {
-      throw new BadRequestException(
-        `Rol ${rolId} no existe. Roles válidos: admin, veterinario, recepcionista, propietario`,
-      );
-    }
-
-    const hashedPassword = await this.hashPassword(password);
+    const hashedPassword = await this.hashService.hash(password);
     const user = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
@@ -137,7 +146,7 @@ export class UserService {
     }
 
     if (updateUserDto.password) {
-      user.password = await this.hashPassword(updateUserDto.password);
+      user.password = await this.hashService.hash(updateUserDto.password);
     }
 
     Object.assign(user, updateUserDto);
@@ -167,7 +176,7 @@ export class UserService {
     if (!user) {
       return null;
     }
-    const isValid = await this.comparePassword(password, user.password);
+    const isValid = await this.hashService.compare(password, user.password);
     if (!isValid) {
       return null;
     }

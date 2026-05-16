@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -28,7 +23,9 @@ export class ConsultaController {
   @Post('consultas')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
-  @ApiOperation({ summary: 'Crear una nueva consulta con validación de constantes vitales' })
+  @ApiOperation({
+    summary: 'Crear una nueva consulta con validación de constantes vitales',
+  })
   @ApiResponse({
     status: 201,
     description: 'Consulta creada exitosamente',

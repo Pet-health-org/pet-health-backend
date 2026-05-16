@@ -31,7 +31,9 @@ import { RoleType } from '../rol/entities/rol.entity';
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class HistoriaClinicaController {
-  constructor(private readonly historiaClinicaService: HistoriaClinicaService) {}
+  constructor(
+    private readonly historiaClinicaService: HistoriaClinicaService,
+  ) {}
 
   @Post('historias-clinicas')
   @UseGuards(RolesGuard)
