@@ -102,7 +102,7 @@ allowBuilds:
   '@nestjs/cli': set this to true or false
   '@nestjs/common': set this to true or false
   '@nestjs/config': set this to true or false
-  '@nestjs/core': set this to true or false
+  '@nestjs/core': true
   '@nestjs/jwt': set this to true or false
   '@nestjs/mapped-types': set this to true or false
   '@nestjs/passport': set this to true or false
@@ -116,7 +116,7 @@ allowBuilds:
   '@paralleldrive/cuid2': set this to true or false
   '@pkgjs/parseargs': set this to true or false
   '@pkgr/core': set this to true or false
-  '@scarf/scarf': set this to true or false
+  '@scarf/scarf': true
   '@sinclair/typebox': set this to true or false
   '@sinonjs/commons': set this to true or false
   '@sinonjs/fake-timers': set this to true or false
@@ -224,7 +224,7 @@ allowBuilds:
   balanced-match: set this to true or false
   base64-js: set this to true or false
   baseline-browser-mapping: set this to true or false
-  bcrypt: set this to true or false
+  bcrypt: true
   binary-extensions: set this to true or false
   bl: set this to true or false
   body-parser: set this to true or false
@@ -635,7 +635,7 @@ allowBuilds:
   undici-types: set this to true or false
   universalify: set this to true or false
   unpipe: set this to true or false
-  unrs-resolver: set this to true or false
+  unrs-resolver: true
   update-browserslist-db: set this to true or false
   uri-js: set this to true or false
   util-deprecate: set this to true or false
