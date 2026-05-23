@@ -43,7 +43,7 @@ export class CitaService {
 
       const propietario = mascota.propietario;
 
-      if (!propietario?.email) return;
+      if (!propietario?.user?.email) return;
 
       const fechaFormateada = new Date(cita.fechaHora).toLocaleString('es-CO', {
         dateStyle: 'long',
@@ -51,9 +51,9 @@ export class CitaService {
       });
 
       await this.notificacionService.create({
-        usuarioId: propietario.id,
+        usuarioId: propietario.user.id,
         mensaje: `Recordatorio: Su mascota ${mascota.nombre} tiene una cita el ${fechaFormateada}. Motivo: ${cita.motivo}`,
-        emailDestino: propietario.email,
+        emailDestino: propietario.user.email,
         tipoEnvio: 'email',
         estado: 'pendiente',
       });

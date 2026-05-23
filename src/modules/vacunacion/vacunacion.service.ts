@@ -202,8 +202,8 @@ export class VacunacionService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const notificacion = await this.notificacionService.enviarCorreo({
-        usuarioId: propietario.id,
-        emailDestino: propietario.email,
+        usuarioId: propietario.user.id,
+        emailDestino: propietario.user.email,
         mensaje: `Recordatorio: ${mascota.nombre} tiene pendiente el refuerzo de ${vacuna.nombre} el ${vacuna.fechaProximoRefuerzo.toISOString().slice(0, 10)}.`,
         tipoEnvio: 'email',
       });

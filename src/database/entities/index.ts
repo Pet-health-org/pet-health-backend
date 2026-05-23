@@ -16,6 +16,7 @@ import { NotificacionInventario } from '../../modules/notificacion-inventario/en
 import { Consulta } from '../../modules/consulta/entities/consulta.entity';
 import { EsquemaVacunacion } from '../../modules/vacunacion/entities/esquema-vacunacion.entity';
 import { AlertaVacuna } from '../../modules/vacunacion/entities/alerta-vacuna.entity';
+import { Propietario } from '../../modules/propietario/entities/propietario.entity';
 
 export const entities = [
   Rol,
@@ -36,6 +37,7 @@ export const entities = [
   Consulta,
   EsquemaVacunacion,
   AlertaVacuna,
+  Propietario,
 ];
 
 export type EntityClass =
