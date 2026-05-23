@@ -57,3 +57,6 @@ export type EntityClass =
   | typeof Consulta
   | typeof EsquemaVacunacion
   | typeof AlertaVacuna;
+  | typeof Consulta
+  | typeof EsquemaVacunacion
+  | typeof AlertaVacuna;

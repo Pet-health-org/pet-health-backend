@@ -3,17 +3,63 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cita } from './entities/cita.entity';
 import { CreateCitaDto, UpdateCitaDto } from './dto/cita.dto';
+import { MascotaService } from '../mascota/mascota.service';
+import { NotificacionService } from '../notificacion/notificacion.service';
+import { HorarioService } from '../horario/horario.service';
 
 @Injectable()
 export class CitaService {
   constructor(
     @InjectRepository(Cita)
     private readonly citaRepository: Repository<Cita>,
+    private readonly mascotaService: MascotaService,
+    private readonly notificacionService: NotificacionService,
+    private readonly horarioService: HorarioService,
   ) {}
 
   async create(createDto: CreateCitaDto): Promise<Cita> {
-    const cita = this.citaRepository.create(createDto);
-    return await this.citaRepository.save(cita);
+    const fechaHora = new Date(createDto.fechaHora);
+    this.horarioService.validarHorarioLaboral(fechaHora);
+
+    await this.horarioService.validarSinConflicto(
+      createDto.veterinarioId,
+      fechaHora,
+    );
+
+    const cita = this.citaRepository.create({
+      ...createDto,
+      fechaHora,
+    });
+    const saved = await this.citaRepository.save(cita);
+
+    await this.enviarNotificacionPropietario(saved);
+
+    return saved;
+  }
+
+  private async enviarNotificacionPropietario(cita: Cita): Promise<void> {
+    try {
+      const mascota = await this.mascotaService.findOne(cita.mascotaId);
+
+      const propietario = mascota.propietario;
+
+      if (!propietario?.email) return;
+
+      const fechaFormateada = new Date(cita.fechaHora).toLocaleString('es-CO', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+      });
+
+      await this.notificacionService.create({
+        usuarioId: propietario.id,
+        mensaje: `Recordatorio: Su mascota ${mascota.nombre} tiene una cita el ${fechaFormateada}. Motivo: ${cita.motivo}`,
+        emailDestino: propietario.email,
+        tipoEnvio: 'email',
+        estado: 'pendiente',
+      });
+    } catch {
+      console.warn(`No se pudo enviar notificación para la cita ${cita.id}`);
+    }
   }
 
   async findAll(): Promise<Cita[]> {

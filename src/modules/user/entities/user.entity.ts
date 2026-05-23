@@ -74,6 +74,27 @@ export class User {
   @JoinColumn({ name: 'rol_id' })
   rol: Rol;
 
+  @Column('varchar', { length: 100, nullable: true })
+  cargo?: string;
+
+  @Column('text', { nullable: true })
+  permisosEspeciales?: string;
+
+  @Column('varchar', { length: 100, nullable: true })
+  especialidad?: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  numeroLicencia?: string;
+
+  @Column('text', { nullable: true })
+  curriculum?: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  telefonoDirecto?: string;
+
+  @Column('text', { nullable: true })
+  observacionesUser?: string;
+
   toJSON() {
     const { password, ...user } = this;
     void password;

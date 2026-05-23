@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Especie } from './entities/especie.entity';
 import { CreateEspecieDto, UpdateEspecieDto } from './dto/especie.dto';
+import { ConstantesVitalesDto } from './dto/constantes-vitales.dto';
 
 @Injectable()
 export class EspecieService {
@@ -38,6 +39,26 @@ export class EspecieService {
       throw new NotFoundException(`Especie con ID ${id} no encontrada`);
     }
     return especie;
+  }
+
+  async getConstantes(especieId: string): Promise<ConstantesVitalesDto> {
+    const especie = await this.findOne(especieId);
+    if (!especie.constantesVitales) {
+      throw new NotFoundException(
+        `No se han definido constantes vitales para la especie "${especie.nombre}"`,
+      );
+    }
+    return JSON.parse(especie.constantesVitales) as ConstantesVitalesDto;
+  }
+
+  async updateConstantes(
+    especieId: string,
+    constantesDto: ConstantesVitalesDto,
+  ): Promise<ConstantesVitalesDto> {
+    const especie = await this.findOne(especieId);
+    especie.constantesVitales = JSON.stringify(constantesDto);
+    await this.especieRepository.save(especie);
+    return constantesDto;
   }
 
   async update(id: string, updateDto: UpdateEspecieDto): Promise<Especie> {

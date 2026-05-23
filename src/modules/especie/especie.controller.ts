@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   ParseUUIDPipe,
@@ -17,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { EspecieService } from './especie.service';
 import { CreateEspecieDto, UpdateEspecieDto } from './dto/especie.dto';
+import { ConstantesVitalesDto } from './dto/constantes-vitales.dto';
 import { Especie } from './entities/especie.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -64,6 +66,41 @@ export class EspecieController {
   @ApiResponse({ status: 404, description: 'Especie no encontrada' })
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Especie> {
     return this.especieService.findOne(id);
+  }
+
+  @Get('especies/:especieId/constantes')
+  @ApiOperation({
+    summary: 'Obtener rangos de constantes vitales de una especie',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Rangos de constantes vitales obtenidos exitosamente',
+    type: ConstantesVitalesDto,
+  })
+  @ApiResponse({ status: 404, description: 'Especie no encontrada' })
+  getConstantes(
+    @Param('especieId', ParseUUIDPipe) especieId: string,
+  ): Promise<ConstantesVitalesDto> {
+    return this.especieService.getConstantes(especieId);
+  }
+
+  @Put('especies/:especieId/constantes')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
+  @ApiOperation({
+    summary: 'Actualizar rangos de constantes vitales de una especie',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Rangos de constantes vitales actualizados exitosamente',
+    type: ConstantesVitalesDto,
+  })
+  @ApiResponse({ status: 404, description: 'Especie no encontrada' })
+  updateConstantes(
+    @Param('especieId', ParseUUIDPipe) especieId: string,
+    @Body() constantesDto: ConstantesVitalesDto,
+  ): Promise<ConstantesVitalesDto> {
+    return this.especieService.updateConstantes(especieId, constantesDto);
   }
 
   @Patch('especies/:id')

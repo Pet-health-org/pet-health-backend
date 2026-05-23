@@ -1,20 +1,4 @@
 import { registerAs } from '@nestjs/config';
-
-function parseJwtExpiresInToSeconds(value: string | undefined): number {
-  if (!value) return 86400;
-
-  const normalized = value.trim().toLowerCase();
-  const numericValue = Number.parseInt(normalized, 10);
-  if (Number.isNaN(numericValue)) return 86400;
-
-  if (normalized.endsWith('d')) return numericValue * 24 * 60 * 60;
-  if (normalized.endsWith('h')) return numericValue * 60 * 60;
-  if (normalized.endsWith('m')) return numericValue * 60;
-  if (normalized.endsWith('s')) return numericValue;
-
-  return numericValue;
-}
-
 export const databaseConfig = registerAs('database', () => ({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '3306', 10),
@@ -27,7 +11,7 @@ export const databaseConfig = registerAs('database', () => ({
 
 export const jwtConfig = registerAs('jwt', () => ({
   secret: process.env.JWT_SECRET || '',
-  expiresIn: parseJwtExpiresInToSeconds(process.env.JWT_EXPIRES_IN),
+  expiresIn: parseInt(process.env.JWT_EXPIRES_IN || '604800', 10),
 }));
 
 export const appConfig = registerAs('app', () => ({
