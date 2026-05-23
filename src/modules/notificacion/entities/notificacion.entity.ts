@@ -28,13 +28,13 @@ export class Notificacion {
   fechaCreacion: Date;
 
   @Column('timestamp', { nullable: true })
-  fechaEnvio: Date;
+  fechaEnvio: Date | null;
 
   @Column('varchar', { length: 20 })
   estado: string;
 
   @Column('text', { nullable: true })
-  errorMsg: string;
+  errorMsg: string | null;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'usuarioId' })

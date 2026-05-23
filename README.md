@@ -102,6 +102,111 @@ Nota: un "propietario" se maneja como un `user` con rol `propietario`.
   - `especie` controlada (enum): `perro`, `gato`, `ave`, `otro`.
   - `id` se genera automaticamente (UUID).
 
+### Especies y constantes vitales
+
+- `GET /especies/:especieId/constantes` (autenticado)
+  - Retorna rangos de temperatura, frecuencia cardíaca y frecuencia respiratoria con valores `minimo`, `maximo`, `unidad`.
+  - Los rangos se almacenan como JSON estructurado en la entidad `Especie`.
+  - `404` si la especie no existe o no tiene rangos definidos.
+
+- `PUT /especies/:especieId/constantes` (admin)
+  - Body esperado:
+    ```json
+    {
+      "temperatura": { "minimo": 38.0, "maximo": 39.2, "unidad": "°C" },
+      "frecuenciaCardiaca": { "minimo": 60, "maximo": 120, "unidad": "lpm" },
+      "frecuenciaRespiratoria": { "minimo": 10, "maximo": 30, "unidad": "rpm" }
+    }
+    ```
+
+### Citas
+
+- `POST /citas` (admin, recepcionista)
+  - Valida horario laboral (lunes a sábado 7:00 AM - 7:00 PM).
+  - Valida que el veterinario no tenga otra cita en el mismo horario (duración mínima 30 min).
+  - Si hay conflicto → `409 Conflict` con:
+    - `conflictoCon`: la cita existente que genera el solapamiento
+    - `horariosAlternativos`: hasta 3 bloques disponibles de 30 min en el mismo día
+  - `201 Created` en éxito.
+  - Dispara automáticamente notificación por correo al propietario vía `NotificacionService`.
+
+### Disponibilidad de veterinarios
+
+- `GET /veterinarios/:id/disponibilidad?fecha=2026-05-15`
+  - Retorna bloques de 30 min con estado `disponible` u `ocupado`.
+  - Horario laboral: lunes a sábado 7:00 AM - 7:00 PM. Domingos retorna `[]`.
+
+- `GET /veterinarios/disponibilidad?fecha=2026-05-15`
+  - Mismo formato pero para todos los veterinarios.
+
+### Consultas
+
+- `POST /consultas` (admin, veterinario)
+  - Campos: `mascotaId`, `motivo`, `anamnesis`, `constantesVitales`, `diagnostico`, `tratamiento`, `observaciones`, `justificacion`.
+  - Campo opcional HU-B10: `insumosUtilizados` con items `{ inventarioId, cantidad }`.
+  - `fecha` se asigna automáticamente con la hora del servidor.
+  - Valida cada constante vital contra los rangos definidos en la especie de la mascota (vía Raza → Especie).
+  - Si incluye insumos, descuenta inventario dentro de una transacción y registra `movimientos_inventario`.
+  - Si el stock es insuficiente, retorna `400` y no guarda la consulta.
+  - Si el stock resultante queda bajo el mínimo, crea alerta en `notificaciones` y `notificaciones_inventario`.
+  - Si hay valores fuera de rango:
+    - Sin `justificacion` → `400 Bad Request` con detalle de alertas.
+    - Con `justificacion` → `201 Created` e incluye campo `alertas` en la respuesta.
+  - `constantesVitales` esperado (opcional):
+    ```json
+    {
+      "temperatura": { "valor": 38.5, "unidad": "°C" },
+      "frecuenciaCardiaca": { "valor": 85, "unidad": "lpm" },
+      "frecuenciaRespiratoria": { "valor": 20, "unidad": "rpm" }
+    }
+    ```
+  - Ejemplo con insumos:
+    ```json
+    {
+      "mascotaId": "uuid-mascota",
+      "motivo": "Vacunacion",
+      "diagnostico": "Paciente apto",
+      "tratamiento": "Aplicacion de vacuna",
+      "insumosUtilizados": [
+        {
+          "inventarioId": "uuid-producto",
+          "cantidad": 1
+        }
+      ]
+    }
+    ```
+
+### Vacunacion
+
+- `POST /vacunacion/esquemas` (admin)
+  - Crea esquemas por especie con vacunas obligatorias/opcionales, rango de edad e intervalo de refuerzo.
+  - Body:
+    ```json
+    {
+      "especie": "perro",
+      "vacunas": [
+        {
+          "nombreVacuna": "Rabia",
+          "tipo": "obligatoria",
+          "edadMinimaMeses": 3,
+          "intervaloRefuerzoDias": 365
+        }
+      ]
+    }
+    ```
+
+- `GET /vacunacion/esquemas/:especie?edadMeses=6`
+  - Retorna `vacunasObligatorias` y `vacunasOpcionales`.
+  - Permite filtrar por `edadMeses` o por rango `edadMinimaMeses`/`edadMaximaMeses`.
+  - Si no existe esquema compatible, retorna `404`.
+
+- `POST /vacunas`
+  - Si no se envía `fechaProximoRefuerzo`, el backend intenta calcularla con el esquema de la especie y edad de la mascota.
+
+- Job diario HU-B09
+  - Revisa todos los días a las 7:00 AM las vacunas con refuerzo entre hoy y los próximos 15 días.
+  - Crea registros en `alertas_vacunas`, dispara notificación al propietario y deja logs de éxito/error.
+
 ## Errores de validacion (formato unificado)
 
 Las validaciones de DTO se devuelven en un unico objeto con detalle por campo:
@@ -169,9 +274,30 @@ En el frontend usar:
       "peso": 12.5
     }
     ```
+- Consultar esquema de vacunacion para sugerencias:
+  - `GET /vacunacion/esquemas/perro?edadMeses=6`
+- Crear consulta con descuento de inventario:
+  - `POST /consultas`
+  - Body (ejemplo):
+    ```json
+    {
+      "mascotaId": "<uuid>",
+      "motivo": "Vacunacion",
+      "diagnostico": "Paciente apto",
+      "tratamiento": "Aplicacion de vacuna",
+      "insumosUtilizados": [
+        {
+          "inventarioId": "<uuid-producto>",
+          "cantidad": 1
+        }
+      ]
+    }
+    ```
 
 ## Documentacion tecnica (HU)
 
-Detalle completo de HU-B01/B02/B03:
+Detalle completo de historias implementadas:
 
 - `docs/HU-B01-B03-propietarios-mascotas.md`
+- `docs/HU-B04-B07-constantes-citas-consultas.md`
+- `docs/HU-B08-B10-vacunacion-inventario.md`

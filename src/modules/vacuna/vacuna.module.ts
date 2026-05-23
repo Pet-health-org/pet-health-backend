@@ -5,12 +5,14 @@ import { VacunaService } from './vacuna.service';
 import { Vacuna } from './entities/vacuna.entity';
 import { HistoriaClinicaModule } from '../historia-clinica/historia-clinica.module';
 import { InventarioModule } from '../inventario/inventario.module';
+import { VacunacionModule } from '../vacunacion/vacunacion.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Vacuna]),
     HistoriaClinicaModule,
     InventarioModule,
+    VacunacionModule,
   ],
   controllers: [VacunaController],
   providers: [VacunaService],

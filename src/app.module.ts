@@ -3,6 +3,7 @@ import { DatabaseModule } from './database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SharedModule } from './common/shared.module';
 import { Rol } from './modules/rol/entities/rol.entity';
 import { User } from './modules/user/entities/user.entity';
 import { RolModule } from './modules/rol/rol.module';
@@ -24,11 +25,14 @@ import { InventarioModule } from './modules/inventario/inventario.module';
 import { ReporteModule } from './modules/reporte/reporte.module';
 import { NotificacionModule } from './modules/notificacion/notificacion.module';
 import { NotificacionInventarioModule } from './modules/notificacion-inventario/notificacion-inventario.module';
+import { ConsultaModule } from './modules/consulta/consulta.module';
+import { VacunacionModule } from './modules/vacunacion/vacunacion.module';
 import { SeederService } from './common/seeder.service';
 
 @Module({
   imports: [
     DatabaseModule,
+    SharedModule,
     TypeOrmModule.forFeature([Rol, User]),
     RolModule,
     UserModule,
@@ -49,6 +53,8 @@ import { SeederService } from './common/seeder.service';
     ReporteModule,
     NotificacionModule,
     NotificacionInventarioModule,
+    ConsultaModule,
+    VacunacionModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

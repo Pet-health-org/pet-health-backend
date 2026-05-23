@@ -5,6 +5,14 @@ import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/auth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
+interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  rol: string;
+  rolId: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -13,7 +21,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async validateUser(loginDto: LoginDto): Promise<any> {
+  async validateUser(loginDto: LoginDto): Promise<AuthUser> {
     const user = await this.userService.validateCredentials(
       loginDto.username,
       loginDto.password,
@@ -21,27 +29,23 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    const { password, ...result } = user;
-    return result;
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      rol: user.rol.name,
+      rolId: user.rol.id,
+    };
   }
 
-  async login(user: any): Promise<{ access_token: string }> {
+  async login(user: AuthUser): Promise<{ access_token: string }> {
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,
       rol: user.rol,
     };
-    const secret =
-      this.configService.get<string>('JWT_SECRET') || 'default_secret';
-    const expiresIn =
-      this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
-    const token = await this.jwtService.signAsync(payload as any, {
-      secret,
-      expiresIn,
-    });
-    return {
-      access_token: token,
-    };
+    const token = await this.generarToken(payload);
+    return { access_token: token };
   }
 
   async refreshToken(userId: string): Promise<{ access_token: string }> {
@@ -51,16 +55,23 @@ export class AuthService {
       username: user.username,
       rol: user.rol.name,
     };
-    const secret =
-      this.configService.get<string>('JWT_SECRET') || 'default_secret';
-    const expiresIn =
-      this.configService.get<number>('JWT_EXPIRES_IN') || 604800;
-    const token = await this.jwtService.signAsync(payload as any, {
+    const token = await this.generarToken(payload);
+    return { access_token: token };
+  }
+
+  private async generarToken(payload: JwtPayload): Promise<string> {
+    const secret = this.configService.get<string>('jwt.secret');
+    const expiresIn = this.configService.get<number>('jwt.expiresIn');
+
+    if (!secret) {
+      throw new Error(
+        'JWT_SECRET no está configurado en las variables de entorno',
+      );
+    }
+
+    return await this.jwtService.signAsync(payload, {
       secret,
-      expiresIn,
+      expiresIn: expiresIn || 86400,
     });
-    return {
-      access_token: token,
-    };
   }
 }
