@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Medicamento } from './entities/medicamento.entity';
-import { CreateMedicamentoDto, UpdateMedicamentoDto } from './dto/medicamento.dto';
+import {
+  CreateMedicamentoDto,
+  UpdateMedicamentoDto,
+} from './dto/medicamento.dto';
 
 @Injectable()
 export class MedicamentoService {
@@ -34,7 +37,9 @@ export class MedicamentoService {
     return medicamento;
   }
 
-  async findByHistoriaClinica(historiaClinicaId: string): Promise<Medicamento[]> {
+  async findByHistoriaClinica(
+    historiaClinicaId: string,
+  ): Promise<Medicamento[]> {
     return await this.medicamentoRepository.find({
       where: { historiaClinicaId },
       relations: ['historiaClinica', 'inventario'],

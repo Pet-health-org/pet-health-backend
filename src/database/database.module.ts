@@ -22,7 +22,7 @@ import { entities } from './entities';
         entities: entities,
         synchronize: configService.get<boolean>('database.synchronize'),
         logging: configService.get<boolean>('database.logging'),
-        connectorPackage:'mysql2'
+        connectorPackage: 'mysql2',
       }),
       inject: [ConfigService],
     }),

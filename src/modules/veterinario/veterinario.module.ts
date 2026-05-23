@@ -5,10 +5,7 @@ import { Veterinario } from './entities/veterinario.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Veterinario]),
-    UserModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Veterinario]), UserModule],
   controllers: [VeterinarioController],
 })
 export class VeterinarioModule {}
