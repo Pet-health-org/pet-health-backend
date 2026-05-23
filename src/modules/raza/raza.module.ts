@@ -6,7 +6,10 @@ import { Raza } from './entities/raza.entity';
 import { EspecieModule } from '../especie/especie.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Raza]), EspecieModule],
+  imports: [
+    TypeOrmModule.forFeature([Raza]),
+    EspecieModule,
+  ],
   controllers: [RazaController],
   providers: [RazaService],
   exports: [RazaService],

@@ -16,10 +16,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { NotificacionService } from './notificacion.service';
-import {
-  CreateNotificacionDto,
-  UpdateNotificacionDto,
-} from './dto/notificacion.dto';
+import { CreateNotificacionDto, UpdateNotificacionDto } from './dto/notificacion.dto';
 import { Notificacion } from './entities/notificacion.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -77,7 +74,9 @@ export class NotificacionController {
     description: 'Notificaciones obtenidas exitosamente',
     type: [Notificacion],
   })
-  findByEstado(@Param('estado') estado: string): Promise<Notificacion[]> {
+  findByEstado(
+    @Param('estado') estado: string,
+  ): Promise<Notificacion[]> {
     return this.notificacionService.findByEstado(estado);
   }
 

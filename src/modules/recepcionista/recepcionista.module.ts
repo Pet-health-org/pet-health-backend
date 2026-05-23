@@ -5,7 +5,10 @@ import { Recepcionista } from './entities/recepcionista.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Recepcionista]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Recepcionista]),
+    UserModule,
+  ],
   controllers: [RecepcionistaController],
 })
 export class RecepcionistaModule {}

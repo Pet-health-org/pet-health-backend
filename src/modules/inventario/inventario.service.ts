@@ -55,10 +55,7 @@ export class InventarioService {
       .getMany();
   }
 
-  async update(
-    id: string,
-    updateDto: UpdateInventarioDto,
-  ): Promise<Inventario> {
+  async update(id: string, updateDto: UpdateInventarioDto): Promise<Inventario> {
     const inventario = await this.findOne(id);
     Object.assign(inventario, updateDto);
     return await this.inventarioRepository.save(inventario);

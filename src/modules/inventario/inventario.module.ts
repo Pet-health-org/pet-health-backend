@@ -6,7 +6,10 @@ import { Inventario } from './entities/inventario.entity';
 import { ProveedorModule } from '../proveedor/proveedor.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Inventario]), ProveedorModule],
+  imports: [
+    TypeOrmModule.forFeature([Inventario]),
+    ProveedorModule,
+  ],
   controllers: [InventarioController],
   providers: [InventarioService],
   exports: [InventarioService],

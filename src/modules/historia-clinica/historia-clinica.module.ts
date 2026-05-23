@@ -6,7 +6,10 @@ import { HistoriaClinica } from './entities/historia-clinica.entity';
 import { MascotaModule } from '../mascota/mascota.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([HistoriaClinica]), MascotaModule],
+  imports: [
+    TypeOrmModule.forFeature([HistoriaClinica]),
+    MascotaModule,
+  ],
   controllers: [HistoriaClinicaController],
   providers: [HistoriaClinicaService],
   exports: [HistoriaClinicaService],

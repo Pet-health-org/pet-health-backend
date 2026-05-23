@@ -60,7 +60,8 @@ export class ConsultaService {
         : await this.consultaRepository.save(this.buildConsulta(createDto));
 
     if (alertas.length > 0) {
-      saved.alertas = alertas;
+      (saved as Consulta & { alertas?: AlertaConstanteDto[] }).alertas =
+        alertas;
     }
 
     return saved;

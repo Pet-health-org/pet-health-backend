@@ -5,7 +5,10 @@ import { Admin } from './entities/admin.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Admin]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Admin]),
+    UserModule,
+  ],
   controllers: [AdminController],
 })
 export class AdminModule {}

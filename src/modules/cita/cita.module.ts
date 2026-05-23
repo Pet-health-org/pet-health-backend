@@ -6,7 +6,10 @@ import { Cita } from './entities/cita.entity';
 import { MascotaModule } from '../mascota/mascota.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Cita]), MascotaModule],
+  imports: [
+    TypeOrmModule.forFeature([Cita]),
+    MascotaModule,
+  ],
   controllers: [CitaController],
   providers: [CitaService],
   exports: [CitaService],
