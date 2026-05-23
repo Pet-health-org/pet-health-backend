@@ -143,8 +143,12 @@ Nota: un "propietario" se maneja como un `user` con rol `propietario`.
 
 - `POST /consultas` (admin, veterinario)
   - Campos: `mascotaId`, `motivo`, `anamnesis`, `constantesVitales`, `diagnostico`, `tratamiento`, `observaciones`, `justificacion`.
+  - Campo opcional HU-B10: `insumosUtilizados` con items `{ inventarioId, cantidad }`.
   - `fecha` se asigna automáticamente con la hora del servidor.
   - Valida cada constante vital contra los rangos definidos en la especie de la mascota (vía Raza → Especie).
+  - Si incluye insumos, descuenta inventario dentro de una transacción y registra `movimientos_inventario`.
+  - Si el stock es insuficiente, retorna `400` y no guarda la consulta.
+  - Si el stock resultante queda bajo el mínimo, crea alerta en `notificaciones` y `notificaciones_inventario`.
   - Si hay valores fuera de rango:
     - Sin `justificacion` → `400 Bad Request` con detalle de alertas.
     - Con `justificacion` → `201 Created` e incluye campo `alertas` en la respuesta.
@@ -156,6 +160,52 @@ Nota: un "propietario" se maneja como un `user` con rol `propietario`.
       "frecuenciaRespiratoria": { "valor": 20, "unidad": "rpm" }
     }
     ```
+  - Ejemplo con insumos:
+    ```json
+    {
+      "mascotaId": "uuid-mascota",
+      "motivo": "Vacunacion",
+      "diagnostico": "Paciente apto",
+      "tratamiento": "Aplicacion de vacuna",
+      "insumosUtilizados": [
+        {
+          "inventarioId": "uuid-producto",
+          "cantidad": 1
+        }
+      ]
+    }
+    ```
+
+### Vacunacion
+
+- `POST /vacunacion/esquemas` (admin)
+  - Crea esquemas por especie con vacunas obligatorias/opcionales, rango de edad e intervalo de refuerzo.
+  - Body:
+    ```json
+    {
+      "especie": "perro",
+      "vacunas": [
+        {
+          "nombreVacuna": "Rabia",
+          "tipo": "obligatoria",
+          "edadMinimaMeses": 3,
+          "intervaloRefuerzoDias": 365
+        }
+      ]
+    }
+    ```
+
+- `GET /vacunacion/esquemas/:especie?edadMeses=6`
+  - Retorna `vacunasObligatorias` y `vacunasOpcionales`.
+  - Permite filtrar por `edadMeses` o por rango `edadMinimaMeses`/`edadMaximaMeses`.
+  - Si no existe esquema compatible, retorna `404`.
+
+- `POST /vacunas`
+  - Si no se envía `fechaProximoRefuerzo`, el backend intenta calcularla con el esquema de la especie y edad de la mascota.
+
+- Job diario HU-B09
+  - Revisa todos los días a las 7:00 AM las vacunas con refuerzo entre hoy y los próximos 15 días.
+  - Crea registros en `alertas_vacunas`, dispara notificación al propietario y deja logs de éxito/error.
 
 ## Errores de validacion (formato unificado)
 
@@ -224,9 +274,30 @@ En el frontend usar:
       "peso": 12.5
     }
     ```
+- Consultar esquema de vacunacion para sugerencias:
+  - `GET /vacunacion/esquemas/perro?edadMeses=6`
+- Crear consulta con descuento de inventario:
+  - `POST /consultas`
+  - Body (ejemplo):
+    ```json
+    {
+      "mascotaId": "<uuid>",
+      "motivo": "Vacunacion",
+      "diagnostico": "Paciente apto",
+      "tratamiento": "Aplicacion de vacuna",
+      "insumosUtilizados": [
+        {
+          "inventarioId": "<uuid-producto>",
+          "cantidad": 1
+        }
+      ]
+    }
+    ```
 
 ## Documentacion tecnica (HU)
 
-Detalle completo de HU-B01/B02/B03:
+Detalle completo de historias implementadas:
 
 - `docs/HU-B01-B03-propietarios-mascotas.md`
+- `docs/HU-B04-B07-constantes-citas-consultas.md`
+- `docs/HU-B08-B10-vacunacion-inventario.md`

@@ -9,10 +9,13 @@ import { Vacuna } from '../../modules/vacuna/entities/vacuna.entity';
 import { Medicamento } from '../../modules/medicamento/entities/medicamento.entity';
 import { Proveedor } from '../../modules/proveedor/entities/proveedor.entity';
 import { Inventario } from '../../modules/inventario/entities/inventario.entity';
+import { MovimientoInventario } from '../../modules/inventario/entities/movimiento-inventario.entity';
 import { Reporte } from '../../modules/reporte/entities/reporte.entity';
 import { Notificacion } from '../../modules/notificacion/entities/notificacion.entity';
 import { NotificacionInventario } from '../../modules/notificacion-inventario/entities/notificacion-inventario.entity';
 import { Consulta } from '../../modules/consulta/entities/consulta.entity';
+import { EsquemaVacunacion } from '../../modules/vacunacion/entities/esquema-vacunacion.entity';
+import { AlertaVacuna } from '../../modules/vacunacion/entities/alerta-vacuna.entity';
 
 export const entities = [
   Rol,
@@ -26,10 +29,13 @@ export const entities = [
   Medicamento,
   Proveedor,
   Inventario,
+  MovimientoInventario,
   Reporte,
   Notificacion,
   NotificacionInventario,
   Consulta,
+  EsquemaVacunacion,
+  AlertaVacuna,
 ];
 
 export type EntityClass =
@@ -44,7 +50,10 @@ export type EntityClass =
   | typeof Medicamento
   | typeof Proveedor
   | typeof Inventario
+  | typeof MovimientoInventario
   | typeof Reporte
   | typeof Notificacion
   | typeof NotificacionInventario
-  | typeof Consulta;
+  | typeof Consulta
+  | typeof EsquemaVacunacion
+  | typeof AlertaVacuna;

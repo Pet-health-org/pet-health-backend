@@ -4,6 +4,9 @@ import {
   IsUUID,
   IsOptional,
   IsNumber,
+  IsArray,
+  IsInt,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -55,6 +58,18 @@ export class AlertaConstanteDto {
   unidad: string;
 }
 
+export class InsumoConsultaDto {
+  @ApiProperty({ example: 'uuid-inventario' })
+  @IsUUID()
+  @IsNotEmpty()
+  inventarioId: string;
+
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  @Min(1)
+  cantidad: number;
+}
+
 export class CreateConsultaDto {
   @ApiProperty({ example: 'uuid-mascota' })
   @IsUUID()
@@ -98,6 +113,13 @@ export class CreateConsultaDto {
   @IsOptional()
   @IsString()
   justificacion?: string;
+
+  @ApiPropertyOptional({ type: [InsumoConsultaDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => InsumoConsultaDto)
+  insumosUtilizados?: InsumoConsultaDto[];
 }
 
 export class ConsultaResponseDto {

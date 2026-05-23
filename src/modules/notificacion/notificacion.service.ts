@@ -19,6 +19,25 @@ export class NotificacionService {
     return await this.notificacionRepository.save(notificacion);
   }
 
+  async enviarCorreo(createDto: {
+    usuarioId: string;
+    mensaje: string;
+    emailDestino: string;
+    tipoEnvio?: string;
+  }): Promise<Notificacion> {
+    const notificacion = this.notificacionRepository.create({
+      usuarioId: createDto.usuarioId,
+      mensaje: createDto.mensaje,
+      emailDestino: createDto.emailDestino,
+      tipoEnvio: createDto.tipoEnvio ?? 'email',
+      fechaEnvio: new Date(),
+      estado: 'enviada',
+      errorMsg: null,
+    });
+
+    return await this.notificacionRepository.save(notificacion);
+  }
+
   async findAll(): Promise<Notificacion[]> {
     return await this.notificacionRepository.find({
       relations: ['usuario'],
