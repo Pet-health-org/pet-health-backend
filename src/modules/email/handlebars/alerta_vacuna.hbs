@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerta de vacunación - Pet-Health</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F0F4F8;font-family:'Segoe UI',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F4F8;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(27,42,74,0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1B2A4A 0%,#2C3E6B 100%);padding:40px 40px 32px;text-align:center;">
+              <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 16px auto;">
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#E74C3C" stroke-width="2" opacity="0.6"/>
+  <circle cx="32" cy="32" r="22" fill="#E74C3C" opacity="0.15"/>
+  <g fill="#E74C3C">
+    <ellipse cx="22" cy="38" rx="4" ry="5"/>
+    <ellipse cx="32" cy="42" rx="4" ry="5"/>
+    <ellipse cx="42" cy="38" rx="4" ry="5"/>
+    <ellipse cx="18" cy="30" rx="3" ry="4"/>
+    <ellipse cx="46" cy="30" rx="3" ry="4"/>
+    <ellipse cx="32" cy="26" rx="8" ry="7"/>
+  </g>
+</svg>
+              <h1 style="color:#ffffff;font-size:26px;margin:0;font-weight:600;letter-spacing:2px;">PET-HEALTH</h1>
+              <p style="color:#7ED7A8;font-size:12px;margin:8px 0 0 0;letter-spacing:3px;text-transform:uppercase;font-weight:500;">Clínica Veterinaria</p>
+            </td>
+          </tr>
+          
+          <!-- Alert Badge -->
+          <tr>
+            <td style="padding:40px 40px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="background:#FFF5F5;border-radius:12px;padding:16px 20px;border-left:4px solid #E74C3C;margin-bottom:24px;">
+                <tr>
+                  <td style="width:40px;vertical-align:middle;">
+                    <table cellpadding="0" cellspacing="0" style="width:32px;height:32px;background:#E74C3C;border-radius:50%;">
+                      <tr>
+                        <td style="text-align:center;vertical-align:middle;font-size:18px;color:#ffffff;font-weight:bold;line-height:32px;font-family:Arial,sans-serif;">&#9888;</td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <p style="color:#C0392B;font-size:14px;margin:0;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Vacuna próxima a vencer</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <h2 style="color:#1B2A4A;font-size:24px;font-weight:600;margin:0 0 8px 0;">Vacuna pendiente</h2>
+              <div style="width:50px;height:4px;background:#E74C3C;border-radius:2px;margin-bottom:28px;"></div>
+              
+              <p style="color:#4A5568;font-size:16px;line-height:1.7;margin:0 0 20px 0;">
+                Hola <strong style="color:#1B2A4A;">{{nombrePropietario}}</strong>,
+              </p>
+              <p style="color:#4A5568;font-size:16px;line-height:1.7;margin:0 0 28px 0;">
+                Le informamos que <strong style="color:#1B2A4A;">{{nombreMascota}}</strong> tiene una vacuna próxima a vencer o ya vencida. Es importante mantener al día el calendario de vacunación para proteger su salud.
+              </p>
+              
+              <!-- Info Box -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border-radius:16px;padding:24px;margin-bottom:28px;border:1px solid #E2E8F0;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:10px 0;color:#718096;font-size:12px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Fecha límite</td>
+                        <td style="padding:10px 0;color:#E74C3C;font-size:16px;text-align:right;font-weight:700;">{{fecha}}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="border-top:1px solid #E2E8F0;height:1px;padding:0;"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;color:#718096;font-size:12px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Motivo</td>
+                        <td style="padding:10px 0;color:#1B2A4A;font-size:16px;text-align:right;font-weight:500;">{{motivo}}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="border-top:1px solid #E2E8F0;height:1px;padding:0;"></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;color:#718096;font-size:12px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Mascota</td>
+                        <td style="padding:10px 0;color:#1B2A4A;font-size:16px;text-align:right;font-weight:500;">{{nombreMascota}}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="color:#4A5568;font-size:15px;line-height:1.7;margin:0 0 32px 0;">
+                Le recomendamos agendar una cita lo antes posible. Puede contactarnos directamente o responder a este correo.
+              </p>
+              
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+                <tr>
+                  <td align="center">
+                    <a href="#" style="display:inline-block;background:linear-gradient(135deg,#7ED7A8 0%,#5BC88A 100%);color:#1B2A4A;text-decoration:none;padding:16px 40px;border-radius:12px;font-size:16px;font-weight:600;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(126,215,168,0.3);">
+                      Agendar cita ahora
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background:#F8FAFC;padding:32px 40px;border-top:1px solid #E2E8F0;text-align:center;">
+              <p style="color:#1B2A4A;font-size:14px;font-weight:600;margin:0 0 4px 0;">Pet-Health Clínica Veterinaria</p>
+              <p style="color:#718096;font-size:13px;line-height:1.6;margin:0 0 12px 0;">Cuidando a quienes más amas</p>
+              <p style="color:#A0AEC0;font-size:12px;margin:0;">Este es un correo automático, por favor no responda directamente.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -95,6 +95,12 @@ export class User {
   @Column('text', { nullable: true })
   observacionesUser?: string;
 
+  @Column('int', { default: 0 })
+  intentosFallidos: number;
+
+  @Column('timestamp', { nullable: true })
+  bloqueadoHasta: Date | null;
+
   toJSON() {
     const { password, ...user } = this;
     void password;

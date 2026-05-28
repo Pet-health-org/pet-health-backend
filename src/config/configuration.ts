@@ -34,6 +34,15 @@ export const paginationConfig = registerAs('pagination', () => ({
   maxLimit: parseInt(process.env.PAGINATION_MAX_LIMIT || '20', 10),
 }));
 
+export const smtpConfig = registerAs('smtp', () => ({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  user: process.env.SMTP_USER || '',
+  password: process.env.SMTP_PASSWORD || '',
+  from: process.env.SMTP_FROM || 'noreply@pethealth.com',
+  secure: process.env.SMTP_SECURE === 'true',
+}));
+
 const configurations = [
   databaseConfig,
   jwtConfig,
@@ -41,6 +50,7 @@ const configurations = [
   horarioConfig,
   hashConfig,
   paginationConfig,
+  smtpConfig,
 ];
 
 export default configurations;

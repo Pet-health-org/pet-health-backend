@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Consultas')
 @ApiBearerAuth()
@@ -23,6 +24,7 @@ export class ConsultaController {
   @Post('consultas')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('CREAR_CONSULTA')
   @ApiOperation({
     summary: 'Crear una nueva consulta con validación de constantes vitales',
   })

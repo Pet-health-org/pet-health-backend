@@ -1,9 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { UserService } from '../user/user.service';
+import { User } from '../user/entities/user.entity';
 import { LoginDto } from './dto/auth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+
+const MAX_INTENTOS = 3;
+const BLOQUEO_MINUTOS = 15;
 
 interface AuthUser {
   id: string;
@@ -19,16 +25,58 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<AuthUser> {
-    const user = await this.userService.validateCredentials(
-      loginDto.username,
-      loginDto.password,
-    );
+    const user = await this.userService.findForAuth(loginDto.username);
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
+
+    if (user.bloqueadoHasta && new Date() < new Date(user.bloqueadoHasta)) {
+      const minutosRestantes = Math.ceil(
+        (new Date(user.bloqueadoHasta).getTime() - Date.now()) / 60000,
+      );
+      throw new UnauthorizedException(
+        `Cuenta bloqueada. Intente nuevamente en ${minutosRestantes} minuto(s)`,
+      );
+    }
+
+    const isValid = await this.userService.comparePassword(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isValid) {
+      const nuevosIntentos = (user.intentosFallidos || 0) + 1;
+      if (nuevosIntentos >= MAX_INTENTOS) {
+        const bloqueoHasta = new Date(Date.now() + BLOQUEO_MINUTOS * 60 * 1000);
+        await this.userRepository.update(user.id, {
+          intentosFallidos: nuevosIntentos,
+          bloqueadoHasta: bloqueoHasta,
+        });
+        throw new UnauthorizedException(
+          'Cuenta bloqueada temporalmente por 15 minutos por múltiples intentos fallidos',
+        );
+      } else {
+        await this.userRepository.update(user.id, {
+          intentosFallidos: nuevosIntentos,
+        });
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+    }
+
+    await this.userRepository.update(user.id, {
+      intentosFallidos: 0,
+      bloqueadoHasta: null,
+    });
+
+    if (user.status !== 'activo') {
+      throw new UnauthorizedException('Usuario inactivo o bloqueado');
+    }
+
     return {
       id: user.id,
       username: user.username,
@@ -71,7 +119,7 @@ export class AuthService {
 
     return await this.jwtService.signAsync(payload, {
       secret,
-      expiresIn: expiresIn || 604800,
+      expiresIn: expiresIn || 1800,
     });
   }
 }

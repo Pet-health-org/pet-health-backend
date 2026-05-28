@@ -31,6 +31,12 @@ export class CreateNotificacionDto {
   @MaxLength(20)
   tipoEnvio: string;
 
+  @ApiPropertyOptional({ example: 'confirmacion_cita' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
+
   @ApiPropertyOptional({ example: '2026-04-25T10:00:00Z' })
   @IsOptional()
   @IsDateString()
@@ -65,6 +71,12 @@ export class UpdateNotificacionDto {
   @IsString()
   @MaxLength(20)
   tipoEnvio?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

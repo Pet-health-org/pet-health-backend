@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import {
   CreateNotificacionDto,
   UpdateNotificacionDto,
 } from './dto/notificacion.dto';
+import { QueryNotificacionDto } from './dto/query-notificacion.dto';
 import { Notificacion } from './entities/notificacion.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -47,14 +49,15 @@ export class NotificacionController {
   }
 
   @Get('notificaciones')
-  @ApiOperation({ summary: 'Obtener todas las notificaciones' })
+  @ApiOperation({
+    summary: 'Obtener historial de notificaciones (filtrable y paginado)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Notificaciones obtenidas exitosamente',
-    type: [Notificacion],
   })
-  findAll(): Promise<Notificacion[]> {
-    return this.notificacionService.findAll();
+  findAll(@Query() query: QueryNotificacionDto) {
+    return this.notificacionService.findAll(query);
   }
 
   @Get('notificaciones/usuario/:usuarioId')
@@ -79,6 +82,26 @@ export class NotificacionController {
   })
   findByEstado(@Param('estado') estado: string): Promise<Notificacion[]> {
     return this.notificacionService.findByEstado(estado);
+  }
+
+  @Post('notificaciones/:id/reenviar')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
+  @ApiOperation({ summary: 'Reenviar una notificacion fallida' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notificacion reenviada exitosamente',
+    type: Notificacion,
+  })
+  @ApiResponse({ status: 404, description: 'Notificacion no encontrada' })
+  @ApiResponse({
+    status: 400,
+    description: 'Solo notificaciones fallidas pueden reenviarse',
+  })
+  reenviar(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Notificacion> {
+    return this.notificacionService.reenviar(id);
   }
 
   @Get('notificaciones/:id')
