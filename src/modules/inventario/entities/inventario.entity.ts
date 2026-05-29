@@ -4,13 +4,18 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { Proveedor } from '../../proveedor/entities/proveedor.entity';
 
 @Entity('inventarios')
+@Unique(['codigo'])
 export class Inventario {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column('varchar', { length: 100, unique: true })
+  codigo: string;
 
   @Column('uuid')
   proveedorId: string;
@@ -18,8 +23,17 @@ export class Inventario {
   @Column('varchar', { length: 150 })
   nombreProducto: string;
 
+  @Column('text', { nullable: true })
+  descripcion: string;
+
   @Column('varchar', { length: 50 })
   tipo: string;
+
+  @Column('varchar', { length: 100, nullable: true })
+  presentacion: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  unidadMedida: string;
 
   @Column('int')
   stockActual: number;

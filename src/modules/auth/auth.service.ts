@@ -2,11 +2,12 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { LoginDto } from './dto/auth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import type { IUserAuth, IUserReader } from '../../common/interfaces/iuser-service.interface';
 
 const MAX_INTENTOS = 3;
 const BLOQUEO_MINUTOS = 15;
@@ -21,16 +22,22 @@ interface AuthUser {
 
 @Injectable()
 export class AuthService {
+  private readonly userAuth: IUserAuth;
+  private readonly userReader: IUserReader;
+
   constructor(
-    private readonly userService: UserService,
+    userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) {
+    this.userAuth = userService;
+    this.userReader = userService;
+  }
 
   async validateUser(loginDto: LoginDto): Promise<AuthUser> {
-    const user = await this.userService.findForAuth(loginDto.username);
+    const user = await this.userAuth.findForAuth(loginDto.username);
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
@@ -44,7 +51,7 @@ export class AuthService {
       );
     }
 
-    const isValid = await this.userService.comparePassword(
+    const isValid = await this.userAuth.comparePassword(
       loginDto.password,
       user.password,
     );
@@ -97,7 +104,7 @@ export class AuthService {
   }
 
   async refreshToken(userId: string): Promise<{ access_token: string }> {
-    const user = await this.userService.findOne(userId);
+    const user = await this.userReader.findOne(userId);
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,

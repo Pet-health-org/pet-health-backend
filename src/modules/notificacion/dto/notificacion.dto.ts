@@ -114,6 +114,24 @@ export class UpdateNotificacionCitaDto {
   fechaRecordatorio?: string;
 }
 
+export class CreateNotificacionPropietarioDto {
+  @ApiProperty({ example: 'uuid-propietario' })
+  @IsUUID()
+  @IsNotEmpty()
+  propietarioId: string;
+
+  @ApiProperty({ example: 'Recordatorio: Vacuna antirrábica vencida' })
+  @IsString()
+  @IsNotEmpty()
+  mensaje: string;
+
+  @ApiPropertyOptional({ example: 'recordatorio_cita' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
+}
+
 export class CreateNotificacionInventarioDto {
   @ApiProperty({ example: 'uuid-inventario' })
   @IsUUID()

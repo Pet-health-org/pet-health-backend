@@ -11,6 +11,12 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateInventarioDto {
+  @ApiProperty({ example: 'VAC-001' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  codigo: string;
+
   @ApiProperty({ example: 'uuid-proveedor' })
   @IsUUID()
   @IsNotEmpty()
@@ -22,11 +28,28 @@ export class CreateInventarioDto {
   @MaxLength(150)
   nombreProducto: string;
 
+  @ApiPropertyOptional({ example: 'Vacuna para prevención de rabia canina' })
+  @IsOptional()
+  @IsString()
+  descripcion?: string;
+
   @ApiProperty({ example: 'vacuna' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   tipo: string;
+
+  @ApiPropertyOptional({ example: 'Frasco 10 dosis' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  presentacion?: string;
+
+  @ApiPropertyOptional({ example: 'ml' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  unidadMedida?: string;
 
   @ApiProperty({ example: 100 })
   @IsNumber()
@@ -55,6 +78,12 @@ export class CreateInventarioDto {
 export class UpdateInventarioDto {
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  codigo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsUUID()
   proveedorId?: string;
 
@@ -67,8 +96,25 @@ export class UpdateInventarioDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  descripcion?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   @MaxLength(50)
   tipo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  presentacion?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  unidadMedida?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

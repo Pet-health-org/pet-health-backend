@@ -56,6 +56,19 @@ export class VacunaController {
     return this.VacunaService.findAll();
   }
 
+  @Get('vacunas/mascota/:mascotaId')
+  @ApiOperation({ summary: 'Obtener vacunas por mascota' })
+  @ApiResponse({
+    status: 200,
+    description: 'Vacunas obtenidas exitosamente',
+    type: [Vacuna],
+  })
+  findByMascota(
+    @Param('mascotaId', ParseUUIDPipe) mascotaId: string,
+  ): Promise<Vacuna[]> {
+    return this.VacunaService.findByMascota(mascotaId);
+  }
+
   @Get('vacunas/historia/:historiaClinicaId')
   @ApiOperation({ summary: 'Obtener vacunas por historia clínica' })
   @ApiResponse({

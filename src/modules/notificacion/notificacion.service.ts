@@ -1,12 +1,21 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notificacion } from './entities/notificacion.entity';
 import { Propietario } from '../propietario/entities/propietario.entity';
-import { EmailService, TipoPlantilla, DatosPlantilla } from '../email/email.service';
+import {
+  EmailService,
+  TipoPlantilla,
+  DatosPlantilla,
+} from '../email/email.service';
 import {
   CreateNotificacionDto,
   UpdateNotificacionDto,
+  CreateNotificacionPropietarioDto,
 } from './dto/notificacion.dto';
 import { QueryNotificacionDto } from './dto/query-notificacion.dto';
 
@@ -23,6 +32,37 @@ export class NotificacionService {
   async create(createDto: CreateNotificacionDto): Promise<Notificacion> {
     const notificacion = this.notificacionRepository.create(createDto);
     return await this.notificacionRepository.save(notificacion);
+  }
+
+  async notificarPropietario(
+    dto: CreateNotificacionPropietarioDto,
+  ): Promise<Notificacion> {
+    const propietario = await this.propietarioRepository.findOne({
+      where: { id: dto.propietarioId },
+      relations: ['user'],
+    });
+
+    if (!propietario) {
+      throw new NotFoundException(
+        `Propietario con ID ${dto.propietarioId} no encontrado`,
+      );
+    }
+
+    const user = propietario.user;
+    const emailDestino = user?.email;
+
+    return this.enviarCorreo({
+      usuarioId: user?.id || dto.propietarioId,
+      emailDestino: emailDestino || '',
+      tipoPlantilla: (dto.tipoPlantilla as TipoPlantilla) || 'recordatorio_cita',
+      datos: {
+        nombrePropietario: user?.nombreCompleto || '',
+        nombreMascota: '',
+        fecha: '',
+        hora: '',
+        motivo: dto.mensaje,
+      },
+    });
   }
 
   async enviarCorreo(params: {

@@ -20,6 +20,7 @@ import { NotificacionService } from './notificacion.service';
 import {
   CreateNotificacionDto,
   UpdateNotificacionDto,
+  CreateNotificacionPropietarioDto,
 } from './dto/notificacion.dto';
 import { QueryNotificacionDto } from './dto/query-notificacion.dto';
 import { Notificacion } from './entities/notificacion.entity';
@@ -46,6 +47,22 @@ export class NotificacionController {
   })
   create(@Body() createDto: CreateNotificacionDto): Promise<Notificacion> {
     return this.notificacionService.create(createDto);
+  }
+
+  @Post('notificaciones/propietario')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA, RoleType.VETERINARIO)
+  @ApiOperation({ summary: 'Enviar notificacion a un propietario' })
+  @ApiResponse({
+    status: 201,
+    description: 'Notificacion enviada al propietario',
+    type: Notificacion,
+  })
+  @ApiResponse({ status: 404, description: 'Propietario no encontrado' })
+  notificarPropietario(
+    @Body() dto: CreateNotificacionPropietarioDto,
+  ): Promise<Notificacion> {
+    return this.notificacionService.notificarPropietario(dto);
   }
 
   @Get('notificaciones')

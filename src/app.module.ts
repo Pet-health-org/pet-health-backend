@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { SharedModule } from './common/shared.module';
 import { Rol } from './modules/rol/entities/rol.entity';
 import { User } from './modules/user/entities/user.entity';
+import { Especie } from './modules/especie/entities/especie.entity';
+import { Raza } from './modules/raza/entities/raza.entity';
 import { RolModule } from './modules/rol/rol.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -35,7 +37,7 @@ import { SeederService } from './common/seeder.service';
   imports: [
     DatabaseModule,
     SharedModule,
-    TypeOrmModule.forFeature([Rol, User]),
+    TypeOrmModule.forFeature([Rol, User, Especie, Raza]),
     RolModule,
     UserModule,
     AuthModule,

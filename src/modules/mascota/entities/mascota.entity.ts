@@ -36,6 +36,9 @@ export class Mascota {
   })
   especie: EspecieMascota;
 
+  @Column('date')
+  birthDate: string;
+
   @Column('int')
   edad: number;
 
@@ -47,6 +50,9 @@ export class Mascota {
 
   @Column('varchar', { length: 255, nullable: true })
   color: string;
+
+  @Column('text', { nullable: true })
+  observaciones: string;
 
   @Column('boolean', { default: true })
   estaActivo: boolean;

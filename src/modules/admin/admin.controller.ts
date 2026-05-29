@@ -7,7 +7,6 @@ import {
   Body,
   Delete,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,7 +14,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { UserService } from '../user/user.service';
+import { AdminService } from './admin.service';
 import { UpdateUserDto } from '../user/dto/user.dto';
 import { User } from '../user/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,7 +28,7 @@ import { RoleType } from '../rol/entities/rol.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleType.ADMIN)
 export class AdminController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly adminService: AdminService) {}
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los administradores' })
@@ -39,7 +38,7 @@ export class AdminController {
     type: [User],
   })
   findAll(): Promise<User[]> {
-    return this.userService.findByRol(RoleType.ADMIN);
+    return this.adminService.findAll();
   }
 
   @Get(':id')
@@ -51,7 +50,7 @@ export class AdminController {
   })
   @ApiResponse({ status: 404, description: 'Administrador no encontrado' })
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
-    return this.userService.findOne(id);
+    return this.adminService.findOne(id);
   }
 
   @Patch(':id')
@@ -66,7 +65,7 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.userService.update(id, updateUserDto);
+    return this.adminService.update(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -77,6 +76,6 @@ export class AdminController {
   })
   @ApiResponse({ status: 404, description: 'Administrador no encontrado' })
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.userService.remove(id);
+    return this.adminService.remove(id);
   }
 }
