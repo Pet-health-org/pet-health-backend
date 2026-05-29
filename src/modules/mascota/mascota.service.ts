@@ -1,9 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Mascota } from './entities/mascota.entity';
 import { CreateMascotaDto, UpdateMascotaDto } from './dto/mascota.dto';
 import { PropietarioService } from '../propietario/propietario.service';
+
+function calcularEdad(birthDate: string): number {
+  const nacimiento = new Date(birthDate);
+  if (isNaN(nacimiento.getTime())) {
+    throw new BadRequestException('La fecha de nacimiento no es válida');
+  }
+  if (nacimiento > new Date()) {
+    throw new BadRequestException(
+      'La fecha de nacimiento no puede ser posterior a la fecha actual',
+    );
+  }
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const mesDiff = hoy.getMonth() - nacimiento.getMonth();
+  if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad--;
+  }
+  return edad;
+}
 
 @Injectable()
 export class MascotaService {
@@ -23,7 +46,11 @@ export class MascotaService {
       );
     }
 
-    const mascota = this.mascotaRepository.create(createDto);
+    const edad = calcularEdad(createDto.birthDate);
+    const mascota = this.mascotaRepository.create({
+      ...createDto,
+      edad,
+    });
     return await this.mascotaRepository.save(mascota);
   }
 
@@ -63,6 +90,10 @@ export class MascotaService {
           `Propietario con ID ${updateDto.propietarioId} no encontrado`,
         );
       }
+    }
+
+    if (updateDto.birthDate) {
+      updateDto['edad'] = calcularEdad(updateDto.birthDate);
     }
 
     Object.assign(mascota, updateDto);

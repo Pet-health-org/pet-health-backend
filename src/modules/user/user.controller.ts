@@ -26,6 +26,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Usuarios')
 @Controller('users')
@@ -93,6 +94,7 @@ export class UserController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('MODIFICAR_USUARIO')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar un usuario (solo admin)' })
   @ApiResponse({
@@ -111,6 +113,7 @@ export class UserController {
   @Patch(':id/status/:status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('CAMBIAR_ESTADO_USUARIO')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cambiar estado de un usuario (solo admin)' })
   @ApiResponse({
@@ -132,6 +135,7 @@ export class UserController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('ELIMINAR_USUARIO')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Eliminar un usuario (solo admin)' })
   @ApiResponse({ status: 200, description: 'Usuario eliminado exitosamente' })

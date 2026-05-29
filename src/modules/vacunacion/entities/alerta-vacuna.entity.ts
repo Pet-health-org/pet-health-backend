@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Vacuna } from '../../vacuna/entities/vacuna.entity';
 import { Mascota } from '../../mascota/entities/mascota.entity';
-import { User } from '../../user/entities/user.entity';
+import { Propietario } from '../../propietario/entities/propietario.entity';
 import { Notificacion } from '../../notificacion/entities/notificacion.entity';
 
 @Entity('alertas_vacunas')
@@ -54,9 +54,9 @@ export class AlertaVacuna {
   @JoinColumn({ name: 'mascotaId' })
   mascota: Mascota;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => Propietario)
   @JoinColumn({ name: 'propietarioId' })
-  propietario: User;
+  propietario: Propietario;
 
   @ManyToOne(() => Notificacion, { nullable: true })
   @JoinColumn({ name: 'notificacionId' })

@@ -13,6 +13,7 @@ import { RoleType } from '../rol/entities/rol.entity';
 import { PropietarioService } from '../propietario/propietario.service';
 import { HashService } from '../../common/hash.service';
 import { IUserService } from '../../common/interfaces/iuser-service.interface';
+import { FindOptionsWhere } from 'typeorm';
 
 type UserCreationHandler = (dto: CreateUserDto) => Promise<User>;
 
@@ -189,5 +190,16 @@ export class UserService implements IUserService {
       relations: ['rol'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findForAuth(usernameOrEmail: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: [{ username: usernameOrEmail }, { email: usernameOrEmail }] as FindOptionsWhere<User>[],
+      relations: ['rol'],
+    });
+  }
+
+  async comparePassword(password: string, hash: string): Promise<boolean> {
+    return await this.hashService.compare(password, hash);
   }
 }

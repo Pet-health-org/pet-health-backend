@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Inventario')
 @ApiBearerAuth()
@@ -33,6 +34,7 @@ export class InventarioController {
   @Post('inventario')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
+  @AuditLog('CREAR_INVENTARIO')
   @ApiOperation({ summary: 'Crear un nuevo producto en inventario' })
   @ApiResponse({
     status: 201,
@@ -104,6 +106,7 @@ export class InventarioController {
   @Patch('inventario/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
+  @AuditLog('MODIFICAR_INVENTARIO')
   @ApiOperation({ summary: 'Actualizar un producto' })
   @ApiResponse({
     status: 200,
@@ -121,6 +124,7 @@ export class InventarioController {
   @Patch('inventario/:id/stock')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
+  @AuditLog('CAMBIAR_STOCK_INVENTARIO')
   @ApiOperation({ summary: 'Actualizar stock de un producto' })
   @ApiResponse({
     status: 200,
@@ -137,6 +141,7 @@ export class InventarioController {
   @Delete('inventario/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('ELIMINAR_INVENTARIO')
   @ApiOperation({ summary: 'Eliminar un producto' })
   @ApiResponse({ status: 200, description: 'Producto eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Producto no encontrado' })

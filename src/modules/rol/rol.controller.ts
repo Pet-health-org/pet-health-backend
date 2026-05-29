@@ -17,6 +17,7 @@ import {
 import { RolService } from './rol.service';
 import { CreateRolDto, UpdateRolDto } from './dto/rol.dto';
 import { Rol } from './entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
@@ -25,6 +26,7 @@ export class RolController {
   constructor(private readonly rolService: RolService) {}
 
   @Post()
+  @AuditLog('CREAR_ROL')
   @ApiOperation({ summary: 'Crear un nuevo rol' })
   @ApiResponse({
     status: 201,
@@ -61,6 +63,7 @@ export class RolController {
   }
 
   @Patch(':id')
+  @AuditLog('MODIFICAR_ROL')
   @ApiOperation({ summary: 'Actualizar un rol' })
   @ApiResponse({
     status: 200,
@@ -77,6 +80,7 @@ export class RolController {
   }
 
   @Delete(':id')
+  @AuditLog('ELIMINAR_ROL')
   @ApiOperation({ summary: 'Eliminar un rol' })
   @ApiResponse({ status: 200, description: 'Rol eliminado exitosamente' })
   @ApiResponse({ status: 404, description: 'Rol no encontrado' })

@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { CreatePropietarioDto } from './dto/propietario.dto';
 import { RolService } from '../rol/rol.service';
 import { RoleType } from '../rol/entities/rol.entity';
+import { Propietario } from './entities/propietario.entity';
 import { User, UserStatus } from '../user/entities/user.entity';
 import { CreateUserDto } from '../user/dto/user.dto';
 import { HashService } from '../../common/hash.service';
@@ -21,6 +22,8 @@ export type PropietarioResponse = Omit<User, 'password'>;
 @Injectable()
 export class PropietarioService {
   constructor(
+    @InjectRepository(Propietario)
+    private readonly propietarioRepository: Repository<Propietario>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly rolService: RolService,
@@ -38,7 +41,7 @@ export class PropietarioService {
     }
 
     const hashedPassword = await this.hashService.hash(createDto.password);
-    const propietario = this.userRepository.create({
+    const user = this.userRepository.create({
       ...createDto,
       password: hashedPassword,
       rol,
@@ -46,8 +49,15 @@ export class PropietarioService {
       isActive: true,
     });
 
-    const saved = await this.userRepository.save(propietario);
-    return this.toResponse(saved);
+    const savedUser = await this.userRepository.save(user);
+
+    const propietario = this.propietarioRepository.create({
+      id: savedUser.id,
+      userId: savedUser.id,
+    });
+    await this.propietarioRepository.save(propietario);
+
+    return this.toResponse(savedUser);
   }
 
   async createFromUser(createUserDto: CreateUserDto): Promise<User> {
@@ -73,7 +83,7 @@ export class PropietarioService {
     }
 
     const hashedPassword = await this.hashService.hash(password);
-    const propietario = this.userRepository.create({
+    const user = this.userRepository.create({
       username,
       email,
       password: hashedPassword,
@@ -83,7 +93,15 @@ export class PropietarioService {
       isActive: true,
     });
 
-    return await this.userRepository.save(propietario);
+    const savedUser = await this.userRepository.save(user);
+
+    const propietario = this.propietarioRepository.create({
+      id: savedUser.id,
+      userId: savedUser.id,
+    });
+    await this.propietarioRepository.save(propietario);
+
+    return savedUser;
   }
 
   async search(
@@ -102,11 +120,12 @@ export class PropietarioService {
       this.paginationConf.maxLimit,
     );
 
-    const query = this.userRepository
+    const query = this.propietarioRepository
       .createQueryBuilder('propietario')
-      .innerJoinAndSelect('propietario.rol', 'rol')
+      .innerJoinAndSelect('propietario.user', 'user')
+      .innerJoin('user.rol', 'rol')
       .where('rol.name = :rol', { rol: RoleType.PROPIETARIO })
-      .orderBy('propietario.createdAt', 'DESC')
+      .orderBy('user.createdAt', 'DESC')
       .skip((safePage - 1) * safeLimit)
       .take(safeLimit);
 
@@ -114,33 +133,33 @@ export class PropietarioService {
     if (term) {
       query.andWhere(
         [
-          'propietario.nombreCompleto LIKE :term',
-          'propietario.numeroIdentificacion LIKE :term',
-          'propietario.telefono LIKE :term',
+          'user.nombreCompleto LIKE :term',
+          'user.numeroIdentificacion LIKE :term',
+          'user.telefono LIKE :term',
         ].join(' OR '),
         { term: `%${term}%` },
       );
     }
 
     const propietarios = await query.getMany();
-    return propietarios.map((propietario) => this.toResponse(propietario));
+    return propietarios.map((p) => this.toResponse(p.user));
   }
 
   async findOne(id: string): Promise<PropietarioResponse> {
-    const propietario = await this.userRepository.findOne({
-      where: { id, rol: { name: RoleType.PROPIETARIO } },
-      relations: ['rol'],
+    const propietario = await this.propietarioRepository.findOne({
+      where: { id },
+      relations: ['user', 'user.rol'],
     });
     if (!propietario) {
       throw new NotFoundException(`Propietario con ID ${id} no encontrado`);
     }
 
-    return this.toResponse(propietario);
+    return this.toResponse(propietario.user);
   }
 
   async exists(id: string): Promise<boolean> {
-    return await this.userRepository.exists({
-      where: { id, rol: { name: RoleType.PROPIETARIO } },
+    return await this.propietarioRepository.exists({
+      where: { id },
     });
   }
 
@@ -171,8 +190,8 @@ export class PropietarioService {
     }
   }
 
-  private toResponse(propietario: User): PropietarioResponse {
-    const { password, ...response } = propietario;
+  private toResponse(user: User): PropietarioResponse {
+    const { password, ...response } = user;
     void password;
     return response as PropietarioResponse;
   }

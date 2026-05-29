@@ -24,6 +24,9 @@ export class Notificacion {
   @Column('varchar', { length: 20 })
   tipoEnvio: string;
 
+  @Column('varchar', { length: 30, nullable: true })
+  tipoPlantilla: string | null;
+
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   fechaCreacion: Date;
 

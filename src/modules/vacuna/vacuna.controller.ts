@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Vacunas')
 @ApiBearerAuth()
@@ -33,6 +34,7 @@ export class VacunaController {
   @Post('vacunas')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('CREAR_VACUNA')
   @ApiOperation({ summary: 'Registrar una nueva vacuna' })
   @ApiResponse({
     status: 201,
@@ -52,6 +54,19 @@ export class VacunaController {
   })
   findAll(): Promise<Vacuna[]> {
     return this.VacunaService.findAll();
+  }
+
+  @Get('vacunas/mascota/:mascotaId')
+  @ApiOperation({ summary: 'Obtener vacunas por mascota' })
+  @ApiResponse({
+    status: 200,
+    description: 'Vacunas obtenidas exitosamente',
+    type: [Vacuna],
+  })
+  findByMascota(
+    @Param('mascotaId', ParseUUIDPipe) mascotaId: string,
+  ): Promise<Vacuna[]> {
+    return this.VacunaService.findByMascota(mascotaId);
   }
 
   @Get('vacunas/historia/:historiaClinicaId')
@@ -82,6 +97,7 @@ export class VacunaController {
   @Patch('vacunas/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('MODIFICAR_VACUNA')
   @ApiOperation({ summary: 'Actualizar una vacuna' })
   @ApiResponse({
     status: 200,
@@ -99,6 +115,7 @@ export class VacunaController {
   @Delete('vacunas/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('ELIMINAR_VACUNA')
   @ApiOperation({ summary: 'Eliminar una vacuna' })
   @ApiResponse({ status: 200, description: 'Vacuna eliminada exitosamente' })
   @ApiResponse({ status: 404, description: 'Vacuna no encontrada' })

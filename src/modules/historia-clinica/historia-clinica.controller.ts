@@ -25,6 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Historias Clínicas')
 @ApiBearerAuth()
@@ -38,6 +39,7 @@ export class HistoriaClinicaController {
   @Post('historias-clinicas')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('CREAR_HISTORIA_CLINICA')
   @ApiOperation({ summary: 'Crear una nueva historia clínica' })
   @ApiResponse({
     status: 201,
@@ -89,6 +91,7 @@ export class HistoriaClinicaController {
   @Patch('historias-clinicas/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('MODIFICAR_HISTORIA_CLINICA')
   @ApiOperation({ summary: 'Actualizar una historia clínica' })
   @ApiResponse({
     status: 200,
@@ -106,6 +109,7 @@ export class HistoriaClinicaController {
   @Delete('historias-clinicas/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('ELIMINAR_HISTORIA_CLINICA')
   @ApiOperation({ summary: 'Eliminar una historia clínica' })
   @ApiResponse({
     status: 200,

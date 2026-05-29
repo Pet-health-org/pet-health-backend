@@ -1,17 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notificacion } from './entities/notificacion.entity';
+import { Propietario } from '../propietario/entities/propietario.entity';
+import {
+  EmailService,
+  TipoPlantilla,
+  DatosPlantilla,
+} from '../email/email.service';
 import {
   CreateNotificacionDto,
   UpdateNotificacionDto,
+  CreateNotificacionPropietarioDto,
 } from './dto/notificacion.dto';
+import { QueryNotificacionDto } from './dto/query-notificacion.dto';
 
 @Injectable()
 export class NotificacionService {
   constructor(
     @InjectRepository(Notificacion)
     private readonly notificacionRepository: Repository<Notificacion>,
+    @InjectRepository(Propietario)
+    private readonly propietarioRepository: Repository<Propietario>,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createDto: CreateNotificacionDto): Promise<Notificacion> {
@@ -19,30 +34,109 @@ export class NotificacionService {
     return await this.notificacionRepository.save(notificacion);
   }
 
-  async enviarCorreo(createDto: {
+  async notificarPropietario(
+    dto: CreateNotificacionPropietarioDto,
+  ): Promise<Notificacion> {
+    const propietario = await this.propietarioRepository.findOne({
+      where: { id: dto.propietarioId },
+      relations: ['user'],
+    });
+
+    if (!propietario) {
+      throw new NotFoundException(
+        `Propietario con ID ${dto.propietarioId} no encontrado`,
+      );
+    }
+
+    const user = propietario.user;
+    const emailDestino = user?.email;
+
+    return this.enviarCorreo({
+      usuarioId: user?.id || dto.propietarioId,
+      emailDestino: emailDestino || '',
+      tipoPlantilla: (dto.tipoPlantilla as TipoPlantilla) || 'recordatorio_cita',
+      datos: {
+        nombrePropietario: user?.nombreCompleto || '',
+        nombreMascota: '',
+        fecha: '',
+        hora: '',
+        motivo: dto.mensaje,
+      },
+    });
+  }
+
+  async enviarCorreo(params: {
     usuarioId: string;
-    mensaje: string;
     emailDestino: string;
-    tipoEnvio?: string;
+    tipoPlantilla: TipoPlantilla;
+    datos: DatosPlantilla;
   }): Promise<Notificacion> {
     const notificacion = this.notificacionRepository.create({
-      usuarioId: createDto.usuarioId,
-      mensaje: createDto.mensaje,
-      emailDestino: createDto.emailDestino,
-      tipoEnvio: createDto.tipoEnvio ?? 'email',
+      usuarioId: params.usuarioId,
+      mensaje: `${params.tipoPlantilla} para ${params.datos.nombreMascota}`,
+      emailDestino: params.emailDestino,
+      tipoEnvio: 'email',
+      tipoPlantilla: params.tipoPlantilla,
       fechaEnvio: new Date(),
-      estado: 'enviada',
+      estado: 'pendiente',
       errorMsg: null,
     });
+
+    try {
+      await this.emailService.enviarCorreo(
+        params.emailDestino,
+        params.tipoPlantilla,
+        params.datos,
+      );
+      notificacion.estado = 'enviado';
+      notificacion.fechaEnvio = new Date();
+    } catch (error: any) {
+      notificacion.estado = 'fallido';
+      notificacion.errorMsg = error.message;
+    }
 
     return await this.notificacionRepository.save(notificacion);
   }
 
-  async findAll(): Promise<Notificacion[]> {
-    return await this.notificacionRepository.find({
+  async findAll(query: QueryNotificacionDto) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 50, 50);
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (query.propietarioId) {
+      const propietario = await this.propietarioRepository.findOne({
+        where: { id: query.propietarioId },
+      });
+      if (propietario) {
+        where.usuarioId = propietario.userId;
+      }
+    }
+    if (query.tipo) {
+      where.tipoPlantilla = query.tipo;
+    }
+    if (query.estado) {
+      where.estado = query.estado;
+    }
+
+    const [data, total] = await this.notificacionRepository.findAndCount({
+      where,
       relations: ['usuario'],
       order: { fechaCreacion: 'DESC' },
+      skip,
+      take: limit,
     });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string): Promise<Notificacion> {
@@ -68,6 +162,41 @@ export class NotificacionService {
       where: { estado },
       order: { fechaCreacion: 'DESC' },
     });
+  }
+
+  async reenviar(id: string): Promise<Notificacion> {
+    const notificacion = await this.findOne(id);
+
+    if (notificacion.estado !== 'fallido') {
+      throw new BadRequestException(
+        'Solo se pueden reenviar notificaciones con estado fallido',
+      );
+    }
+
+    try {
+      const tipoPlantilla = (notificacion.tipoPlantilla ||
+        'confirmacion_cita') as TipoPlantilla;
+      const datos: DatosPlantilla = {
+        nombrePropietario: notificacion.usuario?.nombreCompleto || '',
+        nombreMascota: '',
+        fecha: '',
+        hora: '',
+        motivo: '',
+      };
+      await this.emailService.enviarCorreo(
+        notificacion.emailDestino,
+        tipoPlantilla,
+        datos,
+      );
+      notificacion.estado = 'enviado';
+      notificacion.errorMsg = null;
+    } catch (error: any) {
+      notificacion.estado = 'fallido';
+      notificacion.errorMsg = error.message;
+    }
+
+    notificacion.fechaEnvio = new Date();
+    return await this.notificacionRepository.save(notificacion);
   }
 
   async update(

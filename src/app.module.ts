@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { SharedModule } from './common/shared.module';
 import { Rol } from './modules/rol/entities/rol.entity';
 import { User } from './modules/user/entities/user.entity';
+import { Especie } from './modules/especie/entities/especie.entity';
+import { Raza } from './modules/raza/entities/raza.entity';
 import { RolModule } from './modules/rol/rol.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -27,13 +29,15 @@ import { NotificacionModule } from './modules/notificacion/notificacion.module';
 import { NotificacionInventarioModule } from './modules/notificacion-inventario/notificacion-inventario.module';
 import { ConsultaModule } from './modules/consulta/consulta.module';
 import { VacunacionModule } from './modules/vacunacion/vacunacion.module';
+import { EmailModule } from './modules/email/email.module';
+import { AuditoriaModule } from './modules/auditoria/auditoria.module';
 import { SeederService } from './common/seeder.service';
 
 @Module({
   imports: [
     DatabaseModule,
     SharedModule,
-    TypeOrmModule.forFeature([Rol, User]),
+    TypeOrmModule.forFeature([Rol, User, Especie, Raza]),
     RolModule,
     UserModule,
     AuthModule,
@@ -55,6 +59,8 @@ import { SeederService } from './common/seeder.service';
     NotificacionInventarioModule,
     ConsultaModule,
     VacunacionModule,
+    EmailModule,
+    AuditoriaModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

@@ -6,7 +6,7 @@ import {
   IsNumber,
   IsEnum,
   IsPositive,
-  Min,
+  IsDateString,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -34,11 +34,10 @@ export class CreateMascotaDto {
   @IsNotEmpty()
   especie: EspecieMascota;
 
-  @ApiProperty({ example: 3 })
-  @IsNumber()
+  @ApiProperty({ example: '2023-04-24' })
+  @IsDateString()
   @IsNotEmpty()
-  @Min(0)
-  edad: number;
+  birthDate: string;
 
   @ApiProperty({ example: 'macho' })
   @IsString()
@@ -57,6 +56,11 @@ export class CreateMascotaDto {
   @IsString()
   @MaxLength(255)
   color?: string;
+
+  @ApiPropertyOptional({ example: 'Mascota rescatada, desparasitada' })
+  @IsOptional()
+  @IsString()
+  observaciones?: string;
 }
 
 export class UpdateMascotaDto {
@@ -81,11 +85,10 @@ export class UpdateMascotaDto {
   @IsEnum(EspecieMascota)
   especie?: EspecieMascota;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: '2023-04-24' })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  edad?: number;
+  @IsDateString()
+  birthDate?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -104,4 +107,9 @@ export class UpdateMascotaDto {
   @IsString()
   @MaxLength(255)
   color?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  observaciones?: string;
 }

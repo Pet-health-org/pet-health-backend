@@ -43,19 +43,26 @@ export class CitaService {
 
       const propietario = mascota.propietario;
 
-      if (!propietario?.email) return;
+      if (!propietario?.user?.email) return;
 
-      const fechaFormateada = new Date(cita.fechaHora).toLocaleString('es-CO', {
+      const fecha = new Date(cita.fechaHora).toLocaleDateString('es-CO', {
         dateStyle: 'long',
+      });
+      const hora = new Date(cita.fechaHora).toLocaleTimeString('es-CO', {
         timeStyle: 'short',
       });
 
-      await this.notificacionService.create({
-        usuarioId: propietario.id,
-        mensaje: `Recordatorio: Su mascota ${mascota.nombre} tiene una cita el ${fechaFormateada}. Motivo: ${cita.motivo}`,
-        emailDestino: propietario.email,
-        tipoEnvio: 'email',
-        estado: 'pendiente',
+      await this.notificacionService.enviarCorreo({
+        usuarioId: propietario.user.id,
+        emailDestino: propietario.user.email,
+        tipoPlantilla: 'confirmacion_cita',
+        datos: {
+          nombrePropietario: propietario.user.nombreCompleto || '',
+          nombreMascota: mascota.nombre,
+          fecha,
+          hora,
+          motivo: cita.motivo,
+        },
       });
     } catch {
       console.warn(`No se pudo enviar notificación para la cita ${cita.id}`);

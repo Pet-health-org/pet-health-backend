@@ -6,6 +6,8 @@ import { Rol } from '../modules/rol/entities/rol.entity';
 import { User } from '../modules/user/entities/user.entity';
 import { RoleType } from '../modules/rol/entities/rol.entity';
 import { UserStatus } from '../modules/user/entities/user.entity';
+import { Especie } from '../modules/especie/entities/especie.entity';
+import { Raza } from '../modules/raza/entities/raza.entity';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -14,11 +16,17 @@ export class SeederService implements OnModuleInit {
     private readonly rolRepository: Repository<Rol>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Especie)
+    private readonly especieRepository: Repository<Especie>,
+    @InjectRepository(Raza)
+    private readonly razaRepository: Repository<Raza>,
   ) {}
 
   async onModuleInit() {
     await this.seedRoles();
     await this.seedAdminUser();
+    await this.seedEspecies();
+    await this.seedRazas();
   }
 
   private async seedRoles(): Promise<void> {
@@ -70,6 +78,124 @@ export class SeederService implements OnModuleInit {
       });
       await this.userRepository.save(adminUser);
       console.log('Usuario admin creado: admin@pethealth.com / Admin123!');
+    }
+  }
+
+  private async seedEspecies(): Promise<void> {
+    const especiesData = [
+      { nombre: 'Perro', observaciones: 'Canis lupus familiaris' },
+      { nombre: 'Gato', observaciones: 'Felis catus' },
+      { nombre: 'Ave', observaciones: 'Clase Aves' },
+    ];
+
+    for (const data of especiesData) {
+      const existing = await this.especieRepository.findOne({
+        where: { nombre: data.nombre },
+      });
+      if (!existing) {
+        await this.especieRepository.save(
+          this.especieRepository.create(data),
+        );
+        console.log(`Especie creada: ${data.nombre}`);
+      }
+    }
+  }
+
+  private async seedRazas(): Promise<void> {
+    const perro = await this.especieRepository.findOne({
+      where: { nombre: 'Perro' },
+    });
+    const gato = await this.especieRepository.findOne({
+      where: { nombre: 'Gato' },
+    });
+    const ave = await this.especieRepository.findOne({
+      where: { nombre: 'Ave' },
+    });
+
+    const razasPorEspecie: { especie: typeof perro; nombres: string[] }[] = [
+      {
+        especie: perro,
+        nombres: [
+          'Labrador Retriever',
+          'Pastor Alemán',
+          'Bulldog Francés',
+          'Golden Retriever',
+          'Beagle',
+          'Caniche',
+          'Chihuahua',
+          'Yorkshire Terrier',
+          'Boxer',
+          'Husky Siberiano',
+          'Pug',
+          'Shih Tzu',
+          'Border Collie',
+          'Dálmata',
+          'Doberman',
+          'Rottweiler',
+          'Gran Danés',
+          'Schnauzer',
+          'Pomerania',
+          'West Highland White Terrier',
+        ],
+      },
+      {
+        especie: gato,
+        nombres: [
+          'Persa',
+          'Siames',
+          'Maine Coon',
+          'Bengalí',
+          'Sphynx',
+          'Ragdoll',
+          'Exótico',
+          'Azul Ruso',
+          'British Shorthair',
+          'Scottish Fold',
+          'Abisinio',
+          'Birmano',
+          'Oriental',
+          'Cornish Rex',
+          'Bombay',
+        ],
+      },
+      {
+        especie: ave,
+        nombres: [
+          'Canario',
+          'Periquito',
+          'Agapornis',
+          'Cacatúa',
+          'Loro',
+          'Ninfa',
+          'Diamante Mandarín',
+          'Papagayo',
+          'Guacamayo',
+          'Lorito',
+          'Jilguero',
+          'Cardenal',
+          'Tórtola',
+          'Myna',
+          'Pinzón',
+        ],
+      },
+    ];
+
+    for (const grupo of razasPorEspecie) {
+      if (!grupo.especie) continue;
+      for (const nombre of grupo.nombres) {
+        const existing = await this.razaRepository.findOne({
+          where: { nombre, especieId: grupo.especie.id },
+        });
+        if (!existing) {
+          await this.razaRepository.save(
+            this.razaRepository.create({
+              nombre,
+              especieId: grupo.especie.id,
+            }),
+          );
+          console.log(`Raza creada: ${nombre}`);
+        }
+      }
     }
   }
 

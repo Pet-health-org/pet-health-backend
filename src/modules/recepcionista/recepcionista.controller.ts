@@ -11,7 +11,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { UserService } from '../user/user.service';
+import { RecepcionistaService } from './recepcionista.service';
 import { User } from '../user/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -24,7 +24,9 @@ import { RoleType } from '../rol/entities/rol.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
 export class RecepcionistaController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly recepcionistaService: RecepcionistaService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los recepcionistas' })
@@ -34,7 +36,7 @@ export class RecepcionistaController {
     type: [User],
   })
   findAll(): Promise<User[]> {
-    return this.userService.findByRol(RoleType.RECEPCIONISTA);
+    return this.recepcionistaService.findAll();
   }
 
   @Get(':id')
@@ -46,6 +48,6 @@ export class RecepcionistaController {
   })
   @ApiResponse({ status: 404, description: 'Recepcionista no encontrado' })
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<User> {
-    return this.userService.findOne(id);
+    return this.recepcionistaService.findOne(id);
   }
 }

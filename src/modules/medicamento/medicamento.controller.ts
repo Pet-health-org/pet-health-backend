@@ -25,6 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleType } from '../rol/entities/rol.entity';
+import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
 
 @ApiTags('Medicamentos')
 @ApiBearerAuth()
@@ -36,6 +37,7 @@ export class MedicamentoController {
   @Post('medicamentos')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('CREAR_MEDICAMENTO')
   @ApiOperation({ summary: 'Registrar un nuevo medicamento' })
   @ApiResponse({
     status: 201,
@@ -85,6 +87,7 @@ export class MedicamentoController {
   @Patch('medicamentos/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN, RoleType.VETERINARIO)
+  @AuditLog('MODIFICAR_MEDICAMENTO')
   @ApiOperation({ summary: 'Actualizar un medicamento' })
   @ApiResponse({
     status: 200,
@@ -102,6 +105,7 @@ export class MedicamentoController {
   @Delete('medicamentos/:id')
   @UseGuards(RolesGuard)
   @Roles(RoleType.ADMIN)
+  @AuditLog('ELIMINAR_MEDICAMENTO')
   @ApiOperation({ summary: 'Eliminar un medicamento' })
   @ApiResponse({
     status: 200,

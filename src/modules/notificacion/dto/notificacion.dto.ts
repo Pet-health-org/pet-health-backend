@@ -31,6 +31,12 @@ export class CreateNotificacionDto {
   @MaxLength(20)
   tipoEnvio: string;
 
+  @ApiPropertyOptional({ example: 'confirmacion_cita' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
+
   @ApiPropertyOptional({ example: '2026-04-25T10:00:00Z' })
   @IsOptional()
   @IsDateString()
@@ -68,6 +74,12 @@ export class UpdateNotificacionDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsDateString()
   fechaEnvio?: string;
 
@@ -100,6 +112,24 @@ export class UpdateNotificacionCitaDto {
   @IsOptional()
   @IsDateString()
   fechaRecordatorio?: string;
+}
+
+export class CreateNotificacionPropietarioDto {
+  @ApiProperty({ example: 'uuid-propietario' })
+  @IsUUID()
+  @IsNotEmpty()
+  propietarioId: string;
+
+  @ApiProperty({ example: 'Recordatorio: Vacuna antirrábica vencida' })
+  @IsString()
+  @IsNotEmpty()
+  mensaje: string;
+
+  @ApiPropertyOptional({ example: 'recordatorio_cita' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  tipoPlantilla?: string;
 }
 
 export class CreateNotificacionInventarioDto {
