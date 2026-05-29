@@ -4,12 +4,10 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-  Unique,
 } from 'typeorm';
 import { Proveedor } from '../../proveedor/entities/proveedor.entity';
 
 @Entity('inventarios')
-@Unique(['codigo'])
 export class Inventario {
   @PrimaryGeneratedColumn('uuid')
   id: string;
