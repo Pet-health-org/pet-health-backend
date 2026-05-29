@@ -12,7 +12,7 @@ Este documento presenta 26 historias de usuario derivadas del SRS del Sistema de
 
 Estado de implementacion
 
-Frontend - Completadas (7 primeras)
+Frontend - Completadas
 * HU-F01
 * HU-F02
 * HU-F03
@@ -20,8 +20,6 @@ Frontend - Completadas (7 primeras)
 * HU-F05
 * HU-F06
 * HU-F07
-
-Frontend - Pendientes
 * HU-F08
 * HU-F09
 * HU-F10
@@ -29,7 +27,7 @@ Frontend - Pendientes
 * HU-F12
 * HU-F13
 
-Backend - Completadas (7 primeras)
+Backend - Completadas 
 * HU-B01
 * HU-B02
 * HU-B03
@@ -37,8 +35,6 @@ Backend - Completadas (7 primeras)
 * HU-B05
 * HU-B06
 * HU-B07
-
-Backend - Pendientes
 * HU-B08
 * HU-B09
 * HU-B10
@@ -175,6 +171,115 @@ Criterios de aceptacion:
 * Debe existir un boton de exportar historia clinica a PDF
 * El historial completo debe cargarse en menos de 2 segundos
 
+  ---
+
+  HU-F08: Formulario de registro de consulta con validacion de constantes vitales
+
+Como veterinario,
+quiero un formulario de consulta que valide las constantes vitales en tiempo real segun la especie de la mascota,
+para identificar inmediatamente valores fuera de rango sin necesidad de consultarlos manualmente.
+
+Criterios de aceptacion:
+* El formulario debe incluir campos para: motivo, anamnesis, peso, temperatura, frecuencia cardiaca y frecuencia respiratoria
+* Los campos de constantes vitales deben mostrar el rango normal esperado para la especie como texto de ayuda
+* Si un valor esta fuera de rango, el campo debe resaltarse en amarillo (advertencia) o rojo (critico)
+* El formulario debe permitir guardar valores fuera de rango si el veterinario agrega una justificacion
+* Los campos de diagnostico y tratamiento deben ser areas de texto con suficiente espacio
+
+RF relacionado: RF-11, RF-12
+
+---
+
+Modulo: Gestion de Vacunacion
+
+HU-F09: Panel de vacunas pendientes
+
+Como recepcionista,
+quiero ver un panel con el listado de mascotas que tienen vacunas proximas a vencer o ya vencidas,
+para contactar a sus propietarios y programar las citas de refuerzo con anticipacion.
+
+Criterios de aceptacion:
+* El panel debe mostrar: nombre de la mascota, especie, propietario, vacuna pendiente y fecha de vencimiento
+* Las vacunas vencidas deben aparecer resaltadas en rojo; las proximas a vencer (15 dias) en amarillo
+* Debe existir un boton de "Notificar propietario" por cada registro
+* Debe permitir filtrar por especie o rango de fechas
+* El listado debe actualizarse automaticamente cada vez que se accede al panel
+
+RF relacionado: RF-15
+
+---
+
+HU-F10: Formulario de registro de vacuna aplicada
+
+Como veterinario,
+quiero registrar la aplicacion de una vacuna durante la consulta desde un formulario sencillo,
+para actualizar el esquema de vacunacion de la mascota sin salir de la pantalla de consulta.
+
+Criterios de aceptacion:
+* El formulario debe incluir: selector de tipo de vacuna, numero de lote, fecha de vencimiento del lote y fecha de proximo refuerzo
+* La fecha de proxima aplicacion debe calcularse automaticamente segun el esquema de la especie, con opcion de ajuste manual
+* Al guardar, debe mostrarse confirmacion de que el inventario fue descontado
+* El formulario debe ser accesible como seccion dentro del formulario de consulta
+* Si el lote seleccionado esta por vencer en menos de 30 dias, debe mostrarse una advertencia
+
+RF relacionado: RF-13
+
+---
+
+Modulo: Inventario
+
+HU-F11: Formulario de registro de medicamento o vacuna en inventario
+
+Como administrador,
+quiero un formulario para registrar nuevos medicamentos y vacunas en el inventario del sistema,
+para mantener actualizado el catalogo de insumos disponibles en la clinica.
+
+Criterios de aceptacion:
+* El formulario debe incluir: codigo, nombre, descripcion, presentacion, unidad de medida, cantidad en stock, stock minimo, fecha de vencimiento y proveedor
+* El campo de codigo debe validar que no exista un registro duplicado
+* El campo de unidad de medida debe ofrecer opciones predefinidas (ml, mg, unidades, etc.)
+* Al guardar correctamente, debe redirigir al listado de inventario con el nuevo item visible
+* El formulario debe mostrar errores de validacion campo por campo, no como bloque global
+
+RF relacionado: RF-16
+
+---
+
+HU-F12: Dashboard de alertas de stock bajo
+
+Como administrador,
+quiero ver en el dashboard principal un panel de alertas con los medicamentos y vacunas que estan por debajo del stock minimo,
+para identificar a primera vista los insumos que necesitan reposicion urgente.
+
+Criterios de aceptacion:
+* El panel de alertas debe ser visible en la pantalla de inicio del administrador
+* Cada alerta debe mostrar: nombre del producto, stock actual, stock minimo y proveedor
+* Los productos con stock en 0 deben aparecer en rojo; los que estan por debajo del minimo en amarillo
+* Debe existir un boton de "Generar orden de compra" por cada item en alerta
+* El numero de alertas activas debe aparecer como un badge en el menu lateral de navegacion
+
+RF relacionado: RF-18
+
+---
+
+HU-F13: Pantalla de inicio de sesion y menu adaptado al rol
+
+Como usuario del sistema (administrador, veterinario o recepcionista),
+quiero ingresar con mi usuario y contrasena y ver solo las opciones del menu que corresponden a mi rol,
+para acceder de forma segura y sin confundirme con funciones que no me corresponden.
+
+Criterios de aceptacion:
+* La pantalla de login debe tener campo de usuario, contrasena y boton de ingreso
+* Debe mostrarse un mensaje de error claro tras credenciales incorrectas, sin revelar si el usuario existe
+* Despues de 3 intentos fallidos, el acceso debe bloquearse y mostrar indicacion al usuario
+* El menu de navegacion debe mostrar unicamente las secciones permitidas para cada rol
+* Las opciones no permitidas deben estar ocultas, no solo deshabilitadas
+* La sesion debe cerrarse automaticamente tras 30 minutos de inactividad
+
+RF relacionado: RF-25, RF-26
+
+---
+
 
 
 ## BACKEND
@@ -308,123 +413,6 @@ RF relacionado: RF-11, RF-12
 
 ---
 
-
-
-
-
-
-# Faltantes 
-   ## frontend
-
- HU-F08: Formulario de registro de consulta con validacion de constantes vitales
-
-Como veterinario,
-quiero un formulario de consulta que valide las constantes vitales en tiempo real segun la especie de la mascota,
-para identificar inmediatamente valores fuera de rango sin necesidad de consultarlos manualmente.
-
-Criterios de aceptacion:
-* El formulario debe incluir campos para: motivo, anamnesis, peso, temperatura, frecuencia cardiaca y frecuencia respiratoria
-* Los campos de constantes vitales deben mostrar el rango normal esperado para la especie como texto de ayuda
-* Si un valor esta fuera de rango, el campo debe resaltarse en amarillo (advertencia) o rojo (critico)
-* El formulario debe permitir guardar valores fuera de rango si el veterinario agrega una justificacion
-* Los campos de diagnostico y tratamiento deben ser areas de texto con suficiente espacio
-
-RF relacionado: RF-11, RF-12
-
----
-
-Modulo: Gestion de Vacunacion
-
-HU-F09: Panel de vacunas pendientes
-
-Como recepcionista,
-quiero ver un panel con el listado de mascotas que tienen vacunas proximas a vencer o ya vencidas,
-para contactar a sus propietarios y programar las citas de refuerzo con anticipacion.
-
-Criterios de aceptacion:
-* El panel debe mostrar: nombre de la mascota, especie, propietario, vacuna pendiente y fecha de vencimiento
-* Las vacunas vencidas deben aparecer resaltadas en rojo; las proximas a vencer (15 dias) en amarillo
-* Debe existir un boton de "Notificar propietario" por cada registro
-* Debe permitir filtrar por especie o rango de fechas
-* El listado debe actualizarse automaticamente cada vez que se accede al panel
-
-RF relacionado: RF-15
-
----
-
-HU-F10: Formulario de registro de vacuna aplicada
-
-Como veterinario,
-quiero registrar la aplicacion de una vacuna durante la consulta desde un formulario sencillo,
-para actualizar el esquema de vacunacion de la mascota sin salir de la pantalla de consulta.
-
-Criterios de aceptacion:
-* El formulario debe incluir: selector de tipo de vacuna, numero de lote, fecha de vencimiento del lote y fecha de proximo refuerzo
-* La fecha de proxima aplicacion debe calcularse automaticamente segun el esquema de la especie, con opcion de ajuste manual
-* Al guardar, debe mostrarse confirmacion de que el inventario fue descontado
-* El formulario debe ser accesible como seccion dentro del formulario de consulta
-* Si el lote seleccionado esta por vencer en menos de 30 dias, debe mostrarse una advertencia
-
-RF relacionado: RF-13
-
----
-
-Modulo: Inventario
-
-HU-F11: Formulario de registro de medicamento o vacuna en inventario
-
-Como administrador,
-quiero un formulario para registrar nuevos medicamentos y vacunas en el inventario del sistema,
-para mantener actualizado el catalogo de insumos disponibles en la clinica.
-
-Criterios de aceptacion:
-* El formulario debe incluir: codigo, nombre, descripcion, presentacion, unidad de medida, cantidad en stock, stock minimo, fecha de vencimiento y proveedor
-* El campo de codigo debe validar que no exista un registro duplicado
-* El campo de unidad de medida debe ofrecer opciones predefinidas (ml, mg, unidades, etc.)
-* Al guardar correctamente, debe redirigir al listado de inventario con el nuevo item visible
-* El formulario debe mostrar errores de validacion campo por campo, no como bloque global
-
-RF relacionado: RF-16
-
----
-
-HU-F12: Dashboard de alertas de stock bajo
-
-Como administrador,
-quiero ver en el dashboard principal un panel de alertas con los medicamentos y vacunas que estan por debajo del stock minimo,
-para identificar a primera vista los insumos que necesitan reposicion urgente.
-
-Criterios de aceptacion:
-* El panel de alertas debe ser visible en la pantalla de inicio del administrador
-* Cada alerta debe mostrar: nombre del producto, stock actual, stock minimo y proveedor
-* Los productos con stock en 0 deben aparecer en rojo; los que estan por debajo del minimo en amarillo
-* Debe existir un boton de "Generar orden de compra" por cada item en alerta
-* El numero de alertas activas debe aparecer como un badge en el menu lateral de navegacion
-
-RF relacionado: RF-18
-
----
-
-HU-F13: Pantalla de inicio de sesion y menu adaptado al rol
-
-Como usuario del sistema (administrador, veterinario o recepcionista),
-quiero ingresar con mi usuario y contrasena y ver solo las opciones del menu que corresponden a mi rol,
-para acceder de forma segura y sin confundirme con funciones que no me corresponden.
-
-Criterios de aceptacion:
-* La pantalla de login debe tener campo de usuario, contrasena y boton de ingreso
-* Debe mostrarse un mensaje de error claro tras credenciales incorrectas, sin revelar si el usuario existe
-* Despues de 3 intentos fallidos, el acceso debe bloquearse y mostrar indicacion al usuario
-* El menu de navegacion debe mostrar unicamente las secciones permitidas para cada rol
-* Las opciones no permitidas deben estar ocultas, no solo deshabilitadas
-* La sesion debe cerrarse automaticamente tras 30 minutos de inactividad
-
-RF relacionado: RF-25, RF-26
-
----
-
-## Backend
-
 Modulo: Gestion de Vacunacion
 
 HU-B08: API de gestion de esquemas de vacunacion por especie
@@ -531,6 +519,8 @@ Criterios de aceptacion:
 * Cada endpoint sensible debe validar el token y el rol requerido antes de procesar la solicitud
 * Las acciones criticas (crear, modificar, eliminar registros clinicos, cambios de inventario, modificaciones de roles) deben registrarse automaticamente en un log de auditoria con: usuario, accion, timestamp, IP de origen e ID del registro afectado
 * El endpoint (GET /auditoria) debe ser accesible unicamente por el administrador y soportar filtros por usuario, fecha y tipo de accion
+
+
 
 RF relacionado: RF-25, RF-26, RF-27
 
