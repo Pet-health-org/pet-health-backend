@@ -158,9 +158,18 @@ export class PropietarioService {
   }
 
   async exists(id: string): Promise<boolean> {
-    return await this.propietarioRepository.exists({
+    const propietarioExists = await this.propietarioRepository.exists({
       where: { id },
     });
+    if (propietarioExists) {
+      return true;
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['rol'],
+    });
+    return user?.rol?.name === RoleType.PROPIETARIO;
   }
 
   private async ensureUniqueFields(

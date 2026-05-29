@@ -162,7 +162,6 @@ export class VacunacionService implements OnModuleInit, OnModuleDestroy {
         'historiaClinica',
         'historiaClinica.mascota',
         'historiaClinica.mascota.propietario',
-        'historiaClinica.mascota.propietario.user',
       ],
       order: { fechaProximoRefuerzo: 'ASC' },
     });
@@ -203,11 +202,11 @@ export class VacunacionService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const notificacion = await this.notificacionService.enviarCorreo({
-        usuarioId: propietario.user.id,
-        emailDestino: propietario.user.email,
+        usuarioId: propietario.id,
+        emailDestino: propietario.email,
         tipoPlantilla: 'alerta_vacuna',
         datos: {
-          nombrePropietario: propietario.user.nombreCompleto || propietario.user.email,
+          nombrePropietario: propietario.nombreCompleto || propietario.email,
           nombreMascota: mascota.nombre,
           fecha: vacuna.fechaProximoRefuerzo.toISOString().slice(0, 10),
           hora: '',

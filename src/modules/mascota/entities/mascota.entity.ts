@@ -5,7 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Propietario } from '../../propietario/entities/propietario.entity';
+import { User } from '../../user/entities/user.entity';
 import { Raza } from '../../raza/entities/raza.entity';
 
 export enum EspecieMascota {
@@ -36,8 +36,8 @@ export class Mascota {
   })
   especie: EspecieMascota;
 
-  @Column('date')
-  birthDate: string;
+  @Column('date', { nullable: true })
+  birthDate: string | null;
 
   @Column('int')
   edad: number;
@@ -60,9 +60,9 @@ export class Mascota {
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @ManyToOne(() => Propietario)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'propietarioId' })
-  propietario: Propietario;
+  propietario: User;
 
   @ManyToOne(() => Raza, { nullable: true })
   @JoinColumn({ name: 'razaId' })

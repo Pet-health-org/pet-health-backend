@@ -43,7 +43,7 @@ export class CitaService {
 
       const propietario = mascota.propietario;
 
-      if (!propietario?.user?.email) return;
+      if (!propietario?.email) return;
 
       const fecha = new Date(cita.fechaHora).toLocaleDateString('es-CO', {
         dateStyle: 'long',
@@ -53,11 +53,11 @@ export class CitaService {
       });
 
       await this.notificacionService.enviarCorreo({
-        usuarioId: propietario.user.id,
-        emailDestino: propietario.user.email,
+        usuarioId: propietario.id,
+        emailDestino: propietario.email,
         tipoPlantilla: 'confirmacion_cita',
         datos: {
-          nombrePropietario: propietario.user.nombreCompleto || '',
+          nombrePropietario: propietario.nombreCompleto || '',
           nombreMascota: mascota.nombre,
           fecha,
           hora,
