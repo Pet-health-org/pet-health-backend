@@ -1,4 +1,29 @@
 import { registerAs } from '@nestjs/config';
+
+export function parseJwtExpiresInToSeconds(value: string | undefined): number {
+  const rawValue = value || '1800';
+  const numericValue = Number(rawValue);
+  if (Number.isFinite(numericValue)) {
+    return numericValue;
+  }
+
+  const match = rawValue.match(/^(\d+)(s|m|h|d)$/i);
+  if (!match) {
+    return 1800;
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  const multipliers: Record<string, number> = {
+    s: 1,
+    m: 60,
+    h: 60 * 60,
+    d: 24 * 60 * 60,
+  };
+
+  return amount * multipliers[unit];
+}
+
 export const databaseConfig = registerAs('database', () => ({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '3306', 10),
@@ -11,7 +36,7 @@ export const databaseConfig = registerAs('database', () => ({
 
 export const jwtConfig = registerAs('jwt', () => ({
   secret: process.env.JWT_SECRET || '',
-  expiresIn: parseInt(process.env.JWT_EXPIRES_IN || '604800', 10),
+  expiresIn: parseJwtExpiresInToSeconds(process.env.JWT_EXPIRES_IN),
 }));
 
 export const appConfig = registerAs('app', () => ({
@@ -26,7 +51,7 @@ export const horarioConfig = registerAs('horario', () => ({
 }));
 
 export const hashConfig = registerAs('hash', () => ({
-  saltRounds: parseInt(process.env.HASH_SALT_ROUNDS || '10', 10),
+  saltRounds: parseInt(process.env.HASH_SALT_ROUNDS || '12', 10),
 }));
 
 export const paginationConfig = registerAs('pagination', () => ({

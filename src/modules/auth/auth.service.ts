@@ -7,7 +7,10 @@ import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { LoginDto } from './dto/auth.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import type { IUserAuth, IUserReader } from '../../common/interfaces/iuser-service.interface';
+import type {
+  IUserAuth,
+  IUserReader,
+} from '../../common/interfaces/iuser-service.interface';
 
 const MAX_INTENTOS = 3;
 const BLOQUEO_MINUTOS = 15;
@@ -93,17 +96,24 @@ export class AuthService {
     };
   }
 
-  async login(user: AuthUser): Promise<{ access_token: string }> {
+  async login(
+    user: AuthUser,
+  ): Promise<{ access_token: string; expires_in: number }> {
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,
       rol: user.rol,
     };
     const token = await this.generarToken(payload);
-    return { access_token: token };
+    return {
+      access_token: token,
+      expires_in: this.getJwtExpirationSeconds(),
+    };
   }
 
-  async refreshToken(userId: string): Promise<{ access_token: string }> {
+  async refreshToken(
+    userId: string,
+  ): Promise<{ access_token: string; expires_in: number }> {
     const user = await this.userReader.findOne(userId);
     const payload: JwtPayload = {
       sub: user.id,
@@ -111,7 +121,10 @@ export class AuthService {
       rol: user.rol.name,
     };
     const token = await this.generarToken(payload);
-    return { access_token: token };
+    return {
+      access_token: token,
+      expires_in: this.getJwtExpirationSeconds(),
+    };
   }
 
   private async generarToken(payload: JwtPayload): Promise<string> {
@@ -126,7 +139,11 @@ export class AuthService {
 
     return await this.jwtService.signAsync(payload, {
       secret,
-      expiresIn: expiresIn || 1800,
+      expiresIn: this.getJwtExpirationSeconds(),
     });
+  }
+
+  private getJwtExpirationSeconds(): number {
+    return this.configService.get<number>('jwt.expiresIn') || 1800;
   }
 }

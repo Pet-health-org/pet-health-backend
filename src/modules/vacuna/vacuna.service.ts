@@ -2,14 +2,15 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Vacuna } from './entities/vacuna.entity';
 import { CreateVacunaDto, UpdateVacunaDto } from './dto/vacuna.dto';
 import { HistoriaClinicaService } from '../historia-clinica/historia-clinica.service';
 import { VacunacionService } from '../vacunacion/vacunacion.service';
-import { InventarioService } from '../inventario/inventario.service';
+import { Inventario } from '../inventario/entities/inventario.entity';
 
 @Injectable()
 export class VacunaService {
@@ -18,7 +19,7 @@ export class VacunaService {
     private readonly vacunaRepository: Repository<Vacuna>,
     private readonly historiaClinicaService: HistoriaClinicaService,
     private readonly vacunacionService: VacunacionService,
-    private readonly inventarioService: InventarioService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createDto: CreateVacunaDto): Promise<Vacuna> {
@@ -39,24 +40,32 @@ export class VacunaService {
       }
     }
 
-    const inventario = await this.inventarioService.findOne(
-      createDto.inventarioId,
-    );
-    if (inventario.stockActual < 1) {
-      throw new BadRequestException(
-        `Stock insuficiente para ${inventario.nombreProducto}. Disponible: ${inventario.stockActual}`,
-      );
-    }
+    return await this.dataSource.transaction(async (manager) => {
+      const inventario = await manager.findOne(Inventario, {
+        where: { id: createDto.inventarioId },
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    const vacuna = this.vacunaRepository.create(createDto);
-    const saved = await this.vacunaRepository.save(vacuna);
+      if (!inventario) {
+        throw new BadRequestException(
+          `Producto de inventario ${createDto.inventarioId} no encontrado`,
+        );
+      }
 
-    await this.inventarioService.updateStock(
-      createDto.inventarioId,
-      inventario.stockActual - 1,
-    );
+      if (inventario.stockActual < 1) {
+        throw new UnprocessableEntityException(
+          `Stock insuficiente para ${inventario.nombreProducto}. Disponible: ${inventario.stockActual}`,
+        );
+      }
 
-    return saved;
+      const vacuna = manager.create(Vacuna, createDto);
+      const saved = await manager.save(Vacuna, vacuna);
+
+      inventario.stockActual -= 1;
+      await manager.save(Inventario, inventario);
+
+      return saved;
+    });
   }
 
   async findAll(): Promise<Vacuna[]> {

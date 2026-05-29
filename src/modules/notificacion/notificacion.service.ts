@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notificacion } from './entities/notificacion.entity';
-import { Propietario } from '../propietario/entities/propietario.entity';
+import { User } from '../user/entities/user.entity';
 import {
   EmailService,
   TipoPlantilla,
@@ -24,8 +24,8 @@ export class NotificacionService {
   constructor(
     @InjectRepository(Notificacion)
     private readonly notificacionRepository: Repository<Notificacion>,
-    @InjectRepository(Propietario)
-    private readonly propietarioRepository: Repository<Propietario>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -37,9 +37,9 @@ export class NotificacionService {
   async notificarPropietario(
     dto: CreateNotificacionPropietarioDto,
   ): Promise<Notificacion> {
-    const propietario = await this.propietarioRepository.findOne({
+    const propietario = await this.userRepository.findOne({
       where: { id: dto.propietarioId },
-      relations: ['user'],
+      relations: ['rol'],
     });
 
     if (!propietario) {
@@ -48,15 +48,13 @@ export class NotificacionService {
       );
     }
 
-    const user = propietario.user;
-    const emailDestino = user?.email;
-
     return this.enviarCorreo({
-      usuarioId: user?.id || dto.propietarioId,
-      emailDestino: emailDestino || '',
-      tipoPlantilla: (dto.tipoPlantilla as TipoPlantilla) || 'recordatorio_cita',
+      usuarioId: propietario.id,
+      emailDestino: propietario.email,
+      tipoPlantilla:
+        (dto.tipoPlantilla as TipoPlantilla) || 'recordatorio_cita',
       datos: {
-        nombrePropietario: user?.nombreCompleto || '',
+        nombrePropietario: propietario.nombreCompleto || propietario.email,
         nombreMascota: '',
         fecha: '',
         hora: '',
@@ -106,11 +104,11 @@ export class NotificacionService {
     const where: any = {};
 
     if (query.propietarioId) {
-      const propietario = await this.propietarioRepository.findOne({
+      const propietario = await this.userRepository.findOne({
         where: { id: query.propietarioId },
       });
       if (propietario) {
-        where.usuarioId = propietario.userId;
+        where.usuarioId = propietario.id;
       }
     }
     if (query.tipo) {

@@ -1,215 +1,125 @@
-# Pet Health Backend (NestJS + TypeORM + MySQL)
+# Pet Health Backend
 
-Backend del sistema PetHealth. API REST con autenticacion JWT, Swagger en desarrollo y persistencia en MySQL via TypeORM.
+API REST del sistema PetHealth, construida con NestJS, TypeORM y MySQL. Incluye autenticacion JWT, control por roles, Swagger en desarrollo, auditoria, notificaciones, historia clinica, consultas, vacunacion e inventario.
 
 ## Requisitos
 
-- Node.js (recomendado: LTS)
-- MySQL 8+ (o compatible)
+- Node.js LTS
+- MySQL 8 o compatible
 - npm
 
-## Configuracion
+## Configuracion local
 
 1. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-2. Crear `.env` a partir de `.env.example` (raiz del repo).
-3. Asegurar que MySQL esta corriendo y que la BD existe (`DB_NAME`).
 
-Variables principales (ver `.env.example`):
+```bash
+npm install
+```
 
-- DB: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`
-- TypeORM: `DB_SYNCHRONIZE` (en dev puede ir `true`), `DB_LOGGING`
-- JWT: `JWT_SECRET`, `JWT_EXPIRES_IN`
-- App: `PORT`, `NODE_ENV`
+2. Crear `.env` en la raiz tomando como base `.env.example`.
 
-## Ejecutar
+3. Crear la base de datos definida en `DB_NAME`.
 
-- Desarrollo (watch):
-  ```bash
-  npm run start:dev
-  ```
-- Produccion:
-  ```bash
-  npm run build
-  npm run start:prod
-  ```
+4. Iniciar en desarrollo:
 
-Cuando `NODE_ENV != production`:
+```bash
+npm run start:dev
+```
 
-- Swagger: `http://localhost:<PORT>/docs`
-- CORS habilitado
+En desarrollo (`NODE_ENV != production`) queda disponible:
 
-## Seed (usuario admin)
+- API: `http://localhost:3000`
+- Swagger: `http://localhost:3000/docs`
 
-En el arranque, el `SeederService` crea roles y un usuario admin si no existen.
+Si el puerto `3000` esta ocupado, cierra el proceso existente o cambia `PORT`.
 
-- Email: `admin@pethealth.com`
-- Password: `Admin123!`
+## Variables principales
 
-## Autenticacion (JWT)
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=changeme
+DB_NAME=pet_health_db
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
 
-1. Login:
-   - `POST /auth/login`
-   - Body:
-     ```json
-     { "username": "admin@pethealth.com", "password": "Admin123!" }
-     ```
-   - Respuesta:
-     ```json
-     { "access_token": "<jwt>" }
-     ```
-2. Usar token en requests:
-   - Header: `Authorization: Bearer <jwt>`
+JWT_SECRET=change_me_in_production
+JWT_EXPIRES_IN=1800
 
-## Roles
+PORT=3000
+NODE_ENV=development
 
-Roles definidos:
+HASH_SALT_ROUNDS=12
+
+PAGINATION_DEFAULT_LIMIT=20
+PAGINATION_MAX_LIMIT=20
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=noreply@pethealth.com
+SMTP_SECURE=false
+```
+
+`JWT_EXPIRES_IN` acepta segundos (`1800`) o sufijos (`30m`, `24h`, `7d`). Para HU-B13 se recomienda `1800` o `30m`.
+
+## Seed inicial
+
+Al arrancar, `SeederService` crea roles, especies base, razas y usuario administrador si no existen.
+
+```json
+{
+  "username": "admin@pethealth.com",
+  "password": "Admin123!"
+}
+```
+
+Roles disponibles:
 
 - `admin`
 - `veterinario`
 - `recepcionista`
 - `propietario`
 
-Cada endpoint documenta roles requeridos en Swagger.
+## Autenticacion
 
-## Endpoints (resumen)
+### Login
 
-### Propietarios
+`POST /auth/login`
 
-Nota: un "propietario" se maneja como un `user` con rol `propietario`.
+```json
+{
+  "username": "admin@pethealth.com",
+  "password": "Admin123!"
+}
+```
 
-- `POST /propietarios` (admin, recepcionista)
-  - Crea un propietario (valida email, campos obligatorios y unicidad de `numeroIdentificacion`).
-  - `201` OK: retorna el objeto creado con `id` UUID.
-  - `409` si `numeroIdentificacion` ya existe (tambien valida duplicados de `email` y `username`).
-  - Seguridad: nunca retorna `password` (se hashea con bcrypt).
+Respuesta:
 
-- `GET /propietarios?q=<termino>&page=1&limit=20` (admin, recepcionista)
-  - Busca simultaneamente en `nombreCompleto`, `numeroIdentificacion`, `telefono`.
-  - Busqueda parcial (`LIKE %termino%`).
-  - Paginacion con maximo 20 por pagina.
-  - Siempre retorna `200` con array (puede ser `[]`).
+```json
+{
+  "access_token": "<jwt>",
+  "expires_in": 1800
+}
+```
 
-- `GET /propietarios/:id` (admin, recepcionista)
+Enviar el token en endpoints protegidos:
 
-### Mascotas
+```http
+Authorization: Bearer <jwt>
+```
 
-- `POST /mascotas` (admin, recepcionista, propietario)
-  - Verifica que `propietarioId` exista (si no: `404`).
-  - `peso` debe ser > 0.
-  - `especie` controlada (enum): `perro`, `gato`, `ave`, `otro`.
-  - `id` se genera automaticamente (UUID).
+### Refresh
 
-### Especies y constantes vitales
+`POST /auth/refresh`
 
-- `GET /especies/:especieId/constantes` (autenticado)
-  - Retorna rangos de temperatura, frecuencia cardíaca y frecuencia respiratoria con valores `minimo`, `maximo`, `unidad`.
-  - Los rangos se almacenan como JSON estructurado en la entidad `Especie`.
-  - `404` si la especie no existe o no tiene rangos definidos.
+Requiere JWT vigente y retorna un token nuevo.
 
-- `PUT /especies/:especieId/constantes` (admin)
-  - Body esperado:
-    ```json
-    {
-      "temperatura": { "minimo": 38.0, "maximo": 39.2, "unidad": "°C" },
-      "frecuenciaCardiaca": { "minimo": 60, "maximo": 120, "unidad": "lpm" },
-      "frecuenciaRespiratoria": { "minimo": 10, "maximo": 30, "unidad": "rpm" }
-    }
-    ```
+## Formato de errores
 
-### Citas
-
-- `POST /citas` (admin, recepcionista)
-  - Valida horario laboral (lunes a sábado 7:00 AM - 7:00 PM).
-  - Valida que el veterinario no tenga otra cita en el mismo horario (duración mínima 30 min).
-  - Si hay conflicto → `409 Conflict` con:
-    - `conflictoCon`: la cita existente que genera el solapamiento
-    - `horariosAlternativos`: hasta 3 bloques disponibles de 30 min en el mismo día
-  - `201 Created` en éxito.
-  - Dispara automáticamente notificación por correo al propietario vía `NotificacionService`.
-
-### Disponibilidad de veterinarios
-
-- `GET /veterinarios/:id/disponibilidad?fecha=2026-05-15`
-  - Retorna bloques de 30 min con estado `disponible` u `ocupado`.
-  - Horario laboral: lunes a sábado 7:00 AM - 7:00 PM. Domingos retorna `[]`.
-
-- `GET /veterinarios/disponibilidad?fecha=2026-05-15`
-  - Mismo formato pero para todos los veterinarios.
-
-### Consultas
-
-- `POST /consultas` (admin, veterinario)
-  - Campos: `mascotaId`, `motivo`, `anamnesis`, `constantesVitales`, `diagnostico`, `tratamiento`, `observaciones`, `justificacion`.
-  - Campo opcional HU-B10: `insumosUtilizados` con items `{ inventarioId, cantidad }`.
-  - `fecha` se asigna automáticamente con la hora del servidor.
-  - Valida cada constante vital contra los rangos definidos en la especie de la mascota (vía Raza → Especie).
-  - Si incluye insumos, descuenta inventario dentro de una transacción y registra `movimientos_inventario`.
-  - Si el stock es insuficiente, retorna `400` y no guarda la consulta.
-  - Si el stock resultante queda bajo el mínimo, crea alerta en `notificaciones` y `notificaciones_inventario`.
-  - Si hay valores fuera de rango:
-    - Sin `justificacion` → `400 Bad Request` con detalle de alertas.
-    - Con `justificacion` → `201 Created` e incluye campo `alertas` en la respuesta.
-  - `constantesVitales` esperado (opcional):
-    ```json
-    {
-      "temperatura": { "valor": 38.5, "unidad": "°C" },
-      "frecuenciaCardiaca": { "valor": 85, "unidad": "lpm" },
-      "frecuenciaRespiratoria": { "valor": 20, "unidad": "rpm" }
-    }
-    ```
-  - Ejemplo con insumos:
-    ```json
-    {
-      "mascotaId": "uuid-mascota",
-      "motivo": "Vacunacion",
-      "diagnostico": "Paciente apto",
-      "tratamiento": "Aplicacion de vacuna",
-      "insumosUtilizados": [
-        {
-          "inventarioId": "uuid-producto",
-          "cantidad": 1
-        }
-      ]
-    }
-    ```
-
-### Vacunacion
-
-- `POST /vacunacion/esquemas` (admin)
-  - Crea esquemas por especie con vacunas obligatorias/opcionales, rango de edad e intervalo de refuerzo.
-  - Body:
-    ```json
-    {
-      "especie": "perro",
-      "vacunas": [
-        {
-          "nombreVacuna": "Rabia",
-          "tipo": "obligatoria",
-          "edadMinimaMeses": 3,
-          "intervaloRefuerzoDias": 365
-        }
-      ]
-    }
-    ```
-
-- `GET /vacunacion/esquemas/:especie?edadMeses=6`
-  - Retorna `vacunasObligatorias` y `vacunasOpcionales`.
-  - Permite filtrar por `edadMeses` o por rango `edadMinimaMeses`/`edadMaximaMeses`.
-  - Si no existe esquema compatible, retorna `404`.
-
-- `POST /vacunas`
-  - Si no se envía `fechaProximoRefuerzo`, el backend intenta calcularla con el esquema de la especie y edad de la mascota.
-
-- Job diario HU-B09
-  - Revisa todos los días a las 7:00 AM las vacunas con refuerzo entre hoy y los próximos 15 días.
-  - Crea registros en `alertas_vacunas`, dispara notificación al propietario y deja logs de éxito/error.
-
-## Errores de validacion (formato unificado)
-
-Las validaciones de DTO se devuelven en un unico objeto con detalle por campo:
+Validaciones de DTO:
 
 ```json
 {
@@ -221,83 +131,407 @@ Las validaciones de DTO se devuelven en un unico objeto con detalle por campo:
 }
 ```
 
-## Instrucciones para Frontend
+Codigos comunes:
 
-### Base URL
+- `400`: datos invalidos o regla de negocio incumplida.
+- `401`: token ausente, invalido o expirado.
+- `403`: rol no autorizado.
+- `404`: recurso no encontrado.
+- `409`: duplicado o conflicto de agenda.
+- `422`: stock insuficiente.
 
-Por defecto en desarrollo:
+## Endpoints
 
-- `http://localhost:3000`
+### Auth
 
-En el frontend usar:
+| Metodo | Endpoint        | Uso                          |
+| ------ | --------------- | ---------------------------- |
+| POST   | `/auth/login`   | Inicia sesion y retorna JWT. |
+| POST   | `/auth/refresh` | Refresca JWT vigente.        |
 
-- `API_BASE_URL=http://localhost:3000` (o variable equivalente)
+La cuenta se bloquea por 15 minutos tras 3 intentos fallidos.
 
-### Flujo recomendado
+### Propietarios
 
-1. Autenticar con `POST /auth/login` y guardar `access_token`.
-2. En cada request protegida agregar:
-   - `Authorization: Bearer <token>`
-3. Manejo de respuestas:
-   - `401`: token invalido/expirado
-   - `403`: rol no autorizado para el endpoint
-   - `409`: conflicto por duplicados (ej: `numeroIdentificacion`)
-   - `400`: validaciones (usar `errors` para pintar mensajes por campo)
+Un propietario se maneja como usuario con rol `propietario`.
 
-### Ejemplos rapidos (frontend)
+| Metodo | Endpoint                        | Roles                | Uso                                          |
+| ------ | ------------------------------- | -------------------- | -------------------------------------------- |
+| POST   | `/propietarios`                 | admin, recepcionista | Crea propietario.                            |
+| GET    | `/propietarios?q=&page=&limit=` | admin, recepcionista | Busca por nombre, identificacion o telefono. |
+| GET    | `/propietarios/:id`             | admin, recepcionista | Obtiene propietario.                         |
 
-- Buscar propietarios:
-  - `GET /propietarios?q=juan&page=1&limit=20`
-- Crear propietario:
-  - `POST /propietarios`
-  - Body (ejemplo):
-    ```json
+Crear propietario:
+
+```json
+{
+  "username": "juan_perez",
+  "email": "juan@example.com",
+  "password": "Secret123!",
+  "nombreCompleto": "Juan Perez",
+  "numeroIdentificacion": "1020304050",
+  "direccion": "Calle 123",
+  "telefono": "3001234567",
+  "notas": "Prefiere WhatsApp"
+}
+```
+
+Reglas:
+
+- `numeroIdentificacion`, `email` y `username` son unicos.
+- La respuesta no expone `password`.
+- `GET /propietarios` retorna `200` con array, incluso `[]`.
+- `limit` maximo: 20.
+
+### Mascotas
+
+| Metodo | Endpoint                               | Roles                             | Uso                            |
+| ------ | -------------------------------------- | --------------------------------- | ------------------------------ |
+| POST   | `/mascotas`                            | admin, recepcionista, propietario | Crea mascota.                  |
+| GET    | `/mascotas`                            | autenticado                       | Lista mascotas.                |
+| GET    | `/mascotas/propietario/:propietarioId` | autenticado                       | Lista mascotas de propietario. |
+| GET    | `/mascotas/:id`                        | autenticado                       | Obtiene mascota.               |
+| PATCH  | `/mascotas/:id`                        | admin, recepcionista, propietario | Actualiza mascota.             |
+| DELETE | `/mascotas/:id`                        | admin                             | Elimina mascota.               |
+
+Crear mascota:
+
+```json
+{
+  "propietarioId": "<uuid-user-propietario>",
+  "razaId": "<uuid-raza-opcional>",
+  "nombre": "Firulais",
+  "especie": "perro",
+  "birthDate": "2023-04-24",
+  "sexo": "macho",
+  "peso": 15.5,
+  "color": "Cafe",
+  "observaciones": "Mascota rescatada"
+}
+```
+
+Reglas:
+
+- `propietarioId` debe existir.
+- `especie`: `perro`, `gato`, `ave`, `otro`.
+- `peso` debe ser mayor a 0.
+- `edad` se calcula desde `birthDate`.
+
+### Especies, razas y constantes vitales
+
+| Metodo | Endpoint                          | Roles       | Uso                        |
+| ------ | --------------------------------- | ----------- | -------------------------- |
+| POST   | `/especies`                       | admin       | Crea especie.              |
+| GET    | `/especies`                       | autenticado | Lista especies.            |
+| GET    | `/especies/:id`                   | autenticado | Obtiene especie.           |
+| PATCH  | `/especies/:id`                   | admin       | Actualiza especie.         |
+| DELETE | `/especies/:id`                   | admin       | Elimina especie.           |
+| GET    | `/especies/:especieId/constantes` | autenticado | Retorna rangos normales.   |
+| PUT    | `/especies/:especieId/constantes` | admin       | Actualiza rangos normales. |
+| POST   | `/razas`                          | admin       | Crea raza.                 |
+| GET    | `/razas`                          | autenticado | Lista razas.               |
+| GET    | `/razas/especie/:especieId`       | autenticado | Lista razas por especie.   |
+| GET    | `/razas/:id`                      | autenticado | Obtiene raza.              |
+| PATCH  | `/razas/:id`                      | admin       | Actualiza raza.            |
+| DELETE | `/razas/:id`                      | admin       | Elimina raza.              |
+
+Rangos de constantes:
+
+```json
+{
+  "temperatura": { "minimo": 38.0, "maximo": 39.2, "unidad": "C" },
+  "frecuenciaCardiaca": { "minimo": 60, "maximo": 120, "unidad": "lpm" },
+  "frecuenciaRespiratoria": { "minimo": 10, "maximo": 30, "unidad": "rpm" }
+}
+```
+
+Estos rangos son la fuente de verdad para validar consultas.
+
+### Citas y disponibilidad
+
+| Metodo | Endpoint                                            | Roles                | Uso                               |
+| ------ | --------------------------------------------------- | -------------------- | --------------------------------- |
+| POST   | `/citas`                                            | admin, recepcionista | Agenda cita.                      |
+| GET    | `/citas`                                            | autenticado          | Lista citas.                      |
+| GET    | `/citas/mascota/:mascotaId`                         | autenticado          | Citas de mascota.                 |
+| GET    | `/citas/veterinario/:veterinarioId`                 | autenticado          | Citas de veterinario.             |
+| GET    | `/citas/:id`                                        | autenticado          | Obtiene cita.                     |
+| PATCH  | `/citas/:id`                                        | admin, recepcionista | Actualiza cita.                   |
+| DELETE | `/citas/:id`                                        | admin                | Elimina cita.                     |
+| GET    | `/veterinarios/disponibilidad?fecha=YYYY-MM-DD`     | admin, recepcionista | Disponibilidad de todos.          |
+| GET    | `/veterinarios/:id/disponibilidad?fecha=YYYY-MM-DD` | admin, recepcionista | Disponibilidad de un veterinario. |
+
+Crear cita:
+
+```json
+{
+  "mascotaId": "<uuid-mascota>",
+  "veterinarioId": "<uuid-veterinario>",
+  "fechaHora": "2026-05-25T10:00:00Z",
+  "motivo": "Vacunacion anual",
+  "estado": "pendiente"
+}
+```
+
+Reglas:
+
+- Horario laboral: lunes a sabado, 7:00 AM a 7:00 PM.
+- Bloques de 30 minutos.
+- Si hay solapamiento retorna `409` con cita conflictiva y 3 horarios alternativos.
+- Al crear cita se intenta notificar al propietario.
+
+### Historias clinicas, consultas, medicamentos y vacunas
+
+| Metodo | Endpoint                                    | Roles              | Uso                                      |
+| ------ | ------------------------------------------- | ------------------ | ---------------------------------------- |
+| POST   | `/historias-clinicas`                       | admin, veterinario | Crea historia clinica.                   |
+| GET    | `/historias-clinicas`                       | autenticado        | Lista historias.                         |
+| GET    | `/historias-clinicas/mascota/:mascotaId`    | autenticado        | Historias por mascota.                   |
+| GET    | `/historias-clinicas/:id`                   | autenticado        | Obtiene historia.                        |
+| PATCH  | `/historias-clinicas/:id`                   | admin, veterinario | Actualiza historia.                      |
+| DELETE | `/historias-clinicas/:id`                   | admin              | Elimina historia.                        |
+| POST   | `/consultas`                                | admin, veterinario | Registra consulta.                       |
+| POST   | `/medicamentos`                             | admin, veterinario | Registra medicamento.                    |
+| GET    | `/medicamentos`                             | autenticado        | Lista medicamentos.                      |
+| GET    | `/medicamentos/historia/:historiaClinicaId` | autenticado        | Medicamentos por historia.               |
+| PATCH  | `/medicamentos/:id`                         | admin, veterinario | Actualiza medicamento.                   |
+| DELETE | `/medicamentos/:id`                         | admin              | Elimina medicamento.                     |
+| POST   | `/vacunas`                                  | admin, veterinario | Registra vacuna aplicada.                |
+| GET    | `/vacunas`                                  | autenticado        | Lista vacunas con historia e inventario. |
+| GET    | `/vacunas/mascota/:mascotaId`               | autenticado        | Vacunas directas de mascota.             |
+| GET    | `/vacunas/historia/:historiaClinicaId`      | autenticado        | Vacunas por historia.                    |
+| PATCH  | `/vacunas/:id`                              | admin, veterinario | Actualiza vacuna.                        |
+| DELETE | `/vacunas/:id`                              | admin              | Elimina vacuna.                          |
+
+Crear consulta:
+
+```json
+{
+  "mascotaId": "<uuid-mascota>",
+  "motivo": "Chequeo general",
+  "anamnesis": "Paciente activo",
+  "constantesVitales": {
+    "temperatura": { "valor": 38.5, "unidad": "C" },
+    "frecuenciaCardiaca": { "valor": 85, "unidad": "lpm" },
+    "frecuenciaRespiratoria": { "valor": 20, "unidad": "rpm" }
+  },
+  "diagnostico": "Paciente sano",
+  "tratamiento": "Control en 6 meses",
+  "observaciones": "Sin novedades",
+  "vitalsJustification": "Solo si hay constantes fuera de rango",
+  "insumosUtilizados": [
     {
-      "username": "prop1",
-      "email": "prop1@mail.com",
-      "password": "Secret123!",
-      "nombreCompleto": "Juan Perez",
-      "numeroIdentificacion": "1020304050",
-      "telefono": "3001234567"
+      "inventarioId": "<uuid-inventario>",
+      "cantidad": 1
     }
-    ```
-- Crear mascota:
-  - `POST /mascotas`
-  - Body (ejemplo):
-    ```json
+  ]
+}
+```
+
+Reglas de consulta:
+
+- `fecha` se asigna con hora del servidor.
+- Si hay constantes fuera de rango sin `justificacion`, `vitalsJustification` u `observaciones`, retorna `400` con `alertas`.
+- Si hay justificacion, la consulta se guarda y la respuesta incluye `alertas`.
+- Si `insumosUtilizados` viene informado, descuenta inventario en transaccion.
+- Si el stock es insuficiente, retorna `422` y no guarda la consulta.
+- Si el stock queda bajo el minimo, genera alerta en `notificaciones` y `notificaciones_inventario`.
+
+Registrar vacuna aplicada:
+
+```json
+{
+  "historiaClinicaId": "<uuid-historia>",
+  "inventarioId": "<uuid-producto-vacuna>",
+  "nombre": "Rabia",
+  "fechaAplicacion": "2026-05-25T10:00:00Z",
+  "dosis": "1",
+  "lote": "LOTE-2026",
+  "fechaProximoRefuerzo": "2027-05-25T10:00:00Z"
+}
+```
+
+Reglas de vacuna:
+
+- `fechaProximoRefuerzo` es opcional.
+- Si se omite, el backend intenta calcularla desde el esquema de vacunacion.
+- Valida inventario y descuenta 1 unidad en transaccion.
+- Si no hay stock, retorna `422`.
+- `GET /vacunas/mascota/:mascotaId` evita llamadas multiples desde frontend.
+
+### Vacunacion
+
+| Metodo | Endpoint                        | Roles       | Uso                           |
+| ------ | ------------------------------- | ----------- | ----------------------------- |
+| POST   | `/vacunacion/esquemas`          | admin       | Crea esquemas por especie.    |
+| GET    | `/vacunacion/esquemas/:especie` | autenticado | Consulta esquema por especie. |
+
+Crear esquema:
+
+```json
+{
+  "especie": "perro",
+  "vacunas": [
     {
-      "propietarioId": "<uuid>",
-      "nombre": "Firulais",
-      "especie": "perro",
-      "edad": 3,
-      "sexo": "macho",
-      "peso": 12.5
+      "nombreVacuna": "Rabia",
+      "tipo": "obligatoria",
+      "edadMinimaMeses": 3,
+      "edadMaximaMeses": null,
+      "intervaloRefuerzoDias": 365,
+      "descripcion": "Refuerzo anual"
     }
-    ```
-- Consultar esquema de vacunacion para sugerencias:
-  - `GET /vacunacion/esquemas/perro?edadMeses=6`
-- Crear consulta con descuento de inventario:
-  - `POST /consultas`
-  - Body (ejemplo):
-    ```json
-    {
-      "mascotaId": "<uuid>",
-      "motivo": "Vacunacion",
-      "diagnostico": "Paciente apto",
-      "tratamiento": "Aplicacion de vacuna",
-      "insumosUtilizados": [
-        {
-          "inventarioId": "<uuid-producto>",
-          "cantidad": 1
-        }
-      ]
-    }
-    ```
+  ]
+}
+```
 
-## Documentacion tecnica (HU)
+Filtros:
 
-Detalle completo de historias implementadas:
+- `/vacunacion/esquemas/perro`
+- `/vacunacion/esquemas/perro?edadMeses=6`
+- `/vacunacion/esquemas/perro?edadMinimaMeses=2&edadMaximaMeses=12`
 
-- `docs/HU-B01-B03-propietarios-mascotas.md`
-- `docs/HU-B04-B07-constantes-citas-consultas.md`
-- `docs/HU-B08-B10-vacunacion-inventario.md`
+Job HU-B09:
+
+- Se programa diariamente a las 7:00 AM.
+- Busca vacunas con `fechaProximoRefuerzo` entre hoy y los proximos 15 dias.
+- Crea `alertas_vacunas`.
+- Intenta enviar correo al propietario.
+- Registra logs de alerta generada y notificacion enviada/fallida.
+
+### Inventario y proveedores
+
+| Metodo | Endpoint                             | Roles                | Uso                      |
+| ------ | ------------------------------------ | -------------------- | ------------------------ |
+| POST   | `/proveedores`                       | admin, recepcionista | Crea proveedor.          |
+| GET    | `/proveedores`                       | autenticado          | Lista proveedores.       |
+| GET    | `/proveedores/:id`                   | autenticado          | Obtiene proveedor.       |
+| PATCH  | `/proveedores/:id`                   | admin, recepcionista | Actualiza proveedor.     |
+| DELETE | `/proveedores/:id`                   | admin                | Elimina proveedor.       |
+| POST   | `/inventario`                        | admin, recepcionista | Crea producto.           |
+| GET    | `/inventario`                        | autenticado          | Lista inventario.        |
+| GET    | `/inventario/bajo-stock`             | autenticado          | Productos bajo minimo.   |
+| GET    | `/inventario/proveedor/:proveedorId` | autenticado          | Productos por proveedor. |
+| GET    | `/inventario/tipo/:tipo`             | autenticado          | Productos por tipo.      |
+| GET    | `/inventario/:id`                    | autenticado          | Obtiene producto.        |
+| PATCH  | `/inventario/:id`                    | admin, recepcionista | Actualiza producto.      |
+| PATCH  | `/inventario/:id/stock`              | admin, recepcionista | Actualiza stock.         |
+| DELETE | `/inventario/:id`                    | admin                | Elimina producto.        |
+
+Crear producto:
+
+```json
+{
+  "codigo": "VAC-001",
+  "proveedorId": "<uuid-proveedor>",
+  "nombreProducto": "Vacuna rabia",
+  "descripcion": "Vacuna anual",
+  "tipo": "vacuna",
+  "presentacion": "Frasco 10 dosis",
+  "unidadMedida": "unidades",
+  "stockActual": 10,
+  "stockMinimo": 3,
+  "fechaVencimiento": "2027-01-01T00:00:00Z",
+  "precioUnitario": 25000
+}
+```
+
+Reglas:
+
+- `codigo` es unico.
+- `stockActual` y `stockMinimo` no pueden ser negativos.
+- Frontend debe usar `PATCH /inventario/:id` para editar.
+
+### Notificaciones
+
+| Metodo | Endpoint                             | Roles                             | Uso                             |
+| ------ | ------------------------------------ | --------------------------------- | ------------------------------- |
+| POST   | `/notificaciones`                    | admin, recepcionista, veterinario | Crea notificacion manual.       |
+| POST   | `/notificaciones/propietario`        | admin, recepcionista, veterinario | Notifica a propietario.         |
+| GET    | `/notificaciones`                    | autenticado                       | Historial filtrable y paginado. |
+| GET    | `/notificaciones/usuario/:usuarioId` | autenticado                       | Notificaciones por usuario.     |
+| GET    | `/notificaciones/estado/:estado`     | autenticado                       | Notificaciones por estado.      |
+| POST   | `/notificaciones/:id/reenviar`       | admin, recepcionista              | Reenvia una fallida.            |
+| GET    | `/notificaciones/:id`                | autenticado                       | Obtiene notificacion.           |
+| PATCH  | `/notificaciones/:id`                | autenticado                       | Actualiza notificacion.         |
+| DELETE | `/notificaciones/:id`                | admin                             | Elimina notificacion.           |
+
+Notificar propietario:
+
+```json
+{
+  "propietarioId": "<uuid-user-propietario>",
+  "mensaje": "La vacuna Rabia esta pendiente",
+  "tipoPlantilla": "alerta_vacuna"
+}
+```
+
+Tipos de plantilla:
+
+- `confirmacion_cita`
+- `recordatorio_cita`
+- `alerta_vacuna`
+
+Historial:
+
+- `GET /notificaciones?propietarioId=<uuid>&tipo=alerta_vacuna&estado=enviado&page=1&limit=50`
+
+`limit` maximo: 50.
+
+### Auditoria
+
+| Metodo | Endpoint     | Roles | Uso                          |
+| ------ | ------------ | ----- | ---------------------------- |
+| GET    | `/auditoria` | admin | Consulta acciones auditadas. |
+
+Filtros:
+
+- `usuarioId`
+- `accion`
+- `fechaInicio`
+- `fechaFin`
+- `page`
+- `limit`
+
+Las acciones criticas decoradas con `@AuditLog` se registran con usuario, accion, IP, fecha y registro afectado.
+
+## Guia para frontend
+
+Flujo recomendado:
+
+1. Login con `POST /auth/login`.
+2. Guardar `access_token` y `expires_in`.
+3. Enviar `Authorization: Bearer <token>` en requests protegidos.
+4. Si hay `401`, redirigir a login.
+5. Si hay `403`, ocultar o bloquear la accion por rol.
+6. Si hay `400`, usar `errors` o `message` para pintar errores.
+7. Si hay `409`, mostrar duplicado o conflicto de agenda.
+8. Si hay `422`, mostrar stock insuficiente y no asumir guardado.
+
+Puntos de integracion pedidos por frontend:
+
+- Vacunas de mascota: `GET /vacunas/mascota/:mascotaId`.
+- Registro de vacuna: `POST /vacunas` con `historiaClinicaId`, `inventarioId`, `nombre`, `fechaAplicacion`, `dosis`, `lote`, `fechaProximoRefuerzo`.
+- Inventario HU-F11: `POST /inventario` y `PATCH /inventario/:id` soportan `codigo`, `nombreProducto`, `descripcion`, `presentacion`, `unidadMedida`, `stockActual`, `stockMinimo`, `fechaVencimiento`, `proveedorId`.
+- Consulta con constantes anormales: enviar `vitalsJustification`, `justificacion` u `observaciones`.
+- Boton "Notificar propietario": usar `POST /notificaciones/propietario`.
+- Ediciones requeridas por frontend usan `PATCH`: `/inventario/:id`, `/vacunas/:id`, `/historias-clinicas/:id`.
+
+## Pruebas
+
+Ejecutar pruebas unitarias, integracion y contrato/sistema:
+
+```bash
+npm test
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+Cobertura agregada:
+
+- Unitarias: configuracion JWT, inventario, vacunas, consultas y notificaciones.
+- Integracion: controlador de vacunas para payload requerido por frontend.
+- Sistema: existencia de rutas principales de HU backend y rutas requeridas por frontend.

@@ -114,6 +114,15 @@ export class CreateConsultaDto {
   @IsString()
   justificacion?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Alias usado por frontend para justificar constantes vitales fuera de rango',
+    example: 'El paciente estaba nervioso durante la toma de signos',
+  })
+  @IsOptional()
+  @IsString()
+  vitalsJustification?: string;
+
   @ApiPropertyOptional({ type: [InsumoConsultaDto] })
   @IsOptional()
   @IsArray()

@@ -35,6 +35,7 @@ export class AuthController {
     schema: {
       example: {
         access_token: 'jwt_token_here',
+        expires_in: 1800,
       },
     },
   })
@@ -72,6 +73,7 @@ export class AuthController {
     schema: {
       example: {
         access_token: 'new_jwt_token_here',
+        expires_in: 1800,
       },
     },
   })

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Consulta } from './entities/consulta.entity';
@@ -44,7 +48,7 @@ export class ConsultaService {
         createDto.constantesVitales,
       );
 
-      if (alertas.length > 0 && !createDto.justificacion) {
+      if (alertas.length > 0 && !this.hasVitalJustification(createDto)) {
         throw new BadRequestException({
           message:
             'Las constantes vitales están fuera del rango normal. Debe incluir una justificación.',
@@ -130,7 +134,7 @@ export class ConsultaService {
       }
 
       if (inventario.stockActual < cantidad) {
-        throw new BadRequestException(
+        throw new UnprocessableEntityException(
           `Stock insuficiente para ${inventario.nombreProducto}. Disponible: ${inventario.stockActual}, requerido: ${cantidad}`,
         );
       }
@@ -192,9 +196,18 @@ export class ConsultaService {
     consulta.diagnostico = createDto.diagnostico;
     consulta.tratamiento = createDto.tratamiento;
     consulta.observaciones = createDto.observaciones || null;
-    consulta.justificacion = createDto.justificacion || null;
+    consulta.justificacion =
+      createDto.justificacion || createDto.vitalsJustification || null;
     consulta.fecha = new Date();
     return consulta;
+  }
+
+  private hasVitalJustification(createDto: CreateConsultaDto): boolean {
+    return Boolean(
+      createDto.justificacion ||
+      createDto.vitalsJustification ||
+      createDto.observaciones,
+    );
   }
 
   private async validarConstantes(
