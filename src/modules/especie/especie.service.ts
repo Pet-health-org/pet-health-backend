@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ConflictException,
@@ -55,6 +56,7 @@ export class EspecieService {
     especieId: string,
     constantesDto: ConstantesVitalesDto,
   ): Promise<ConstantesVitalesDto> {
+    this.validateConstantes(constantesDto);
     const especie = await this.findOne(especieId);
     especie.constantesVitales = JSON.stringify(constantesDto);
     await this.especieRepository.save(especie);
@@ -78,5 +80,21 @@ export class EspecieService {
   async remove(id: string): Promise<void> {
     const especie = await this.findOne(id);
     await this.especieRepository.remove(especie);
+  }
+
+  private validateConstantes(constantes: ConstantesVitalesDto): void {
+    const entries = [
+      ['temperatura', constantes.temperatura],
+      ['frecuenciaCardiaca', constantes.frecuenciaCardiaca],
+      ['frecuenciaRespiratoria', constantes.frecuenciaRespiratoria],
+    ] as const;
+
+    for (const [nombre, rango] of entries) {
+      if (rango.minimo >= rango.maximo) {
+        throw new BadRequestException(
+          `El minimo de ${nombre} debe ser menor que el maximo`,
+        );
+      }
+    }
   }
 }

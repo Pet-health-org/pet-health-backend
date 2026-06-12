@@ -1,13 +1,13 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { Rol } from '../modules/rol/entities/rol.entity';
 import { User } from '../modules/user/entities/user.entity';
 import { RoleType } from '../modules/rol/entities/rol.entity';
 import { UserStatus } from '../modules/user/entities/user.entity';
 import { Especie } from '../modules/especie/entities/especie.entity';
 import { Raza } from '../modules/raza/entities/raza.entity';
+import { HashService } from './hash.service';
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -20,6 +20,7 @@ export class SeederService implements OnModuleInit {
     private readonly especieRepository: Repository<Especie>,
     @InjectRepository(Raza)
     private readonly razaRepository: Repository<Raza>,
+    private readonly hashService: HashService,
   ) {}
 
   async onModuleInit() {
@@ -67,7 +68,7 @@ export class SeederService implements OnModuleInit {
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('Admin123!', 10);
+      const hashedPassword = await this.hashService.hash('Admin123!');
       const adminUser = this.userRepository.create({
         username: 'admin',
         email: 'admin@pethealth.com',
@@ -83,9 +84,21 @@ export class SeederService implements OnModuleInit {
 
   private async seedEspecies(): Promise<void> {
     const especiesData = [
-      { nombre: 'Perro', observaciones: 'Canis lupus familiaris' },
-      { nombre: 'Gato', observaciones: 'Felis catus' },
-      { nombre: 'Ave', observaciones: 'Clase Aves' },
+      {
+        nombre: 'Perro',
+        observaciones: 'Canis lupus familiaris',
+        constantesVitales: this.getDefaultConstantes('Perro'),
+      },
+      {
+        nombre: 'Gato',
+        observaciones: 'Felis catus',
+        constantesVitales: this.getDefaultConstantes('Gato'),
+      },
+      {
+        nombre: 'Ave',
+        observaciones: 'Clase Aves',
+        constantesVitales: this.getDefaultConstantes('Ave'),
+      },
     ];
 
     for (const data of especiesData) {
@@ -94,9 +107,16 @@ export class SeederService implements OnModuleInit {
       });
       if (!existing) {
         await this.especieRepository.save(
-          this.especieRepository.create(data),
+          this.especieRepository.create({
+            ...data,
+            constantesVitales: JSON.stringify(data.constantesVitales),
+          }),
         );
         console.log(`Especie creada: ${data.nombre}`);
+      } else if (!existing.constantesVitales) {
+        existing.constantesVitales = JSON.stringify(data.constantesVitales);
+        await this.especieRepository.save(existing);
+        console.log(`Constantes vitales creadas para: ${data.nombre}`);
       }
     }
   }
@@ -207,5 +227,27 @@ export class SeederService implements OnModuleInit {
       [RoleType.PROPIETARIO]: 'Propietario de mascotas - cliente',
     };
     return descriptions[roleName];
+  }
+
+  private getDefaultConstantes(nombre: string) {
+    const constantes = {
+      Perro: {
+        temperatura: { minimo: 38.0, maximo: 39.2, unidad: '°C' },
+        frecuenciaCardiaca: { minimo: 60, maximo: 140, unidad: 'lpm' },
+        frecuenciaRespiratoria: { minimo: 10, maximo: 35, unidad: 'rpm' },
+      },
+      Gato: {
+        temperatura: { minimo: 38.0, maximo: 39.2, unidad: '°C' },
+        frecuenciaCardiaca: { minimo: 140, maximo: 220, unidad: 'lpm' },
+        frecuenciaRespiratoria: { minimo: 20, maximo: 40, unidad: 'rpm' },
+      },
+      Ave: {
+        temperatura: { minimo: 40.0, maximo: 42.0, unidad: '°C' },
+        frecuenciaCardiaca: { minimo: 150, maximo: 400, unidad: 'lpm' },
+        frecuenciaRespiratoria: { minimo: 15, maximo: 60, unidad: 'rpm' },
+      },
+    };
+
+    return constantes[nombre];
   }
 }

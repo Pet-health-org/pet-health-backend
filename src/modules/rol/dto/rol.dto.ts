@@ -4,6 +4,7 @@ import { RoleType } from '../entities/rol.entity';
 
 export class CreateRolDto {
   @ApiProperty({ enum: RoleType, example: RoleType.VETERINARIO })
+  @IsEnum(RoleType)
   name: RoleType;
 
   @ApiPropertyOptional({ example: 'Personal veterinario' })

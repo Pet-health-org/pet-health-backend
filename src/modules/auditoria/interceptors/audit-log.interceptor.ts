@@ -5,7 +5,7 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, mergeMap } from 'rxjs';
 import { AuditoriaService } from '../auditoria.service';
 import { AUDIT_LOG_KEY } from '../decorators/audit-log.decorator';
 
@@ -29,15 +29,16 @@ export class AuditLogInterceptor implements NestInterceptor {
     const user = request.user;
 
     return next.handle().pipe(
-      tap((result) => {
+      mergeMap(async (result) => {
         const registroId =
           result?.id || request.params.id || request.body?.id || null;
-        this.auditoriaService.log({
+        await this.auditoriaService.log({
           usuarioId: user?.id,
           accion: action,
           ip: request.ip,
           registroId,
         });
+        return result;
       }),
     );
   }

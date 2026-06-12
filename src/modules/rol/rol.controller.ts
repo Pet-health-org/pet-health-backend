@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,12 +17,17 @@ import {
 } from '@nestjs/swagger';
 import { RolService } from './rol.service';
 import { CreateRolDto, UpdateRolDto } from './dto/rol.dto';
-import { Rol } from './entities/rol.entity';
+import { Rol, RoleType } from './entities/rol.entity';
 import { AuditLog } from '../auditoria/decorators/audit-log.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
 @Controller('roles')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RoleType.ADMIN)
 export class RolController {
   constructor(private readonly rolService: RolService) {}
 
