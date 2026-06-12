@@ -80,6 +80,8 @@ export class MascotaController {
   }
 
   @Patch('mascotas/:id')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA, RoleType.PROPIETARIO)
   @ApiOperation({ summary: 'Actualizar una mascota' })
   @ApiResponse({
     status: 200,

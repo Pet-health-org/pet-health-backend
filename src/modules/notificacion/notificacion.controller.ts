@@ -66,6 +66,8 @@ export class NotificacionController {
   }
 
   @Get('notificaciones')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @ApiOperation({
     summary: 'Obtener historial de notificaciones (filtrable y paginado)',
   })
@@ -78,6 +80,8 @@ export class NotificacionController {
   }
 
   @Get('notificaciones/usuario/:usuarioId')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Obtener notificaciones por usuario' })
   @ApiResponse({
     status: 200,
@@ -91,6 +95,8 @@ export class NotificacionController {
   }
 
   @Get('notificaciones/estado/:estado')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Obtener notificaciones por estado' })
   @ApiResponse({
     status: 200,
@@ -122,6 +128,8 @@ export class NotificacionController {
   }
 
   @Get('notificaciones/:id')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Obtener una notificacion por ID' })
   @ApiResponse({
     status: 200,
@@ -134,6 +142,8 @@ export class NotificacionController {
   }
 
   @Patch('notificaciones/:id')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN)
   @ApiOperation({ summary: 'Actualizar una notificacion' })
   @ApiResponse({
     status: 200,

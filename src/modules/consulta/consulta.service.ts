@@ -214,47 +214,43 @@ export class ConsultaService {
     razaId: string | null,
     constantes: ConstantesVitalesIngresoDto,
   ): Promise<AlertaConstanteDto[]> {
-    try {
-      if (!razaId) return [];
+    if (!razaId) return [];
 
-      const raza = await this.razaService.findOne(razaId);
-      const especieId = raza.especieId;
+    const raza = await this.razaService.findOne(razaId);
+    const especieId = raza.especieId;
 
-      const rangos: ConstantesVitalesDto =
-        await this.especieService.getConstantes(especieId);
-      const alertas: AlertaConstanteDto[] = [];
+    const rangos: ConstantesVitalesDto =
+      await this.especieService.getConstantes(especieId);
+    const alertas: AlertaConstanteDto[] = [];
 
-      if (constantes.temperatura) {
-        this.evaluarConstante(
-          'temperatura',
-          constantes.temperatura.valor,
-          rangos.temperatura,
-          alertas,
-        );
-      }
-
-      if (constantes.frecuenciaCardiaca) {
-        this.evaluarConstante(
-          'frecuenciaCardiaca',
-          constantes.frecuenciaCardiaca.valor,
-          rangos.frecuenciaCardiaca,
-          alertas,
-        );
-      }
-
-      if (constantes.frecuenciaRespiratoria) {
-        this.evaluarConstante(
-          'frecuenciaRespiratoria',
-          constantes.frecuenciaRespiratoria.valor,
-          rangos.frecuenciaRespiratoria,
-          alertas,
-        );
-      }
-
-      return alertas;
-    } catch {
-      return [];
+    if (constantes.temperatura) {
+      this.evaluarConstante(
+        'temperatura',
+        constantes.temperatura.valor,
+        rangos.temperatura,
+        alertas,
+      );
     }
+
+    if (constantes.frecuenciaCardiaca) {
+      this.evaluarConstante(
+        'frecuenciaCardiaca',
+        constantes.frecuenciaCardiaca.valor,
+        rangos.frecuenciaCardiaca,
+        alertas,
+      );
+    }
+
+    if (constantes.frecuenciaRespiratoria) {
+      this.evaluarConstante(
+        'frecuenciaRespiratoria',
+        constantes.frecuenciaRespiratoria.valor,
+        rangos.frecuenciaRespiratoria,
+        alertas,
+      );
+    }
+
+    return alertas;
   }
 
   private evaluarConstante(

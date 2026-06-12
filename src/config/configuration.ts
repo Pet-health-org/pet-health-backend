@@ -29,9 +29,12 @@ export const databaseConfig = registerAs('database', () => ({
   port: parseInt(process.env.DB_PORT || '3306', 10),
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
-  name: process.env.DB_NAME || 'pethealth',
+  name: process.env.DB_NAME || 'pet-health',
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
   logging: process.env.DB_LOGGING === 'true',
+  ssl: process.env.DB_SSL === 'true',
+  sslCaPath: process.env.DB_SSL_CA_PATH || 'CA',
+  sslCa: process.env.DB_SSL_CA || '',
 }));
 
 export const jwtConfig = registerAs('jwt', () => ({

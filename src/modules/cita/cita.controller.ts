@@ -93,6 +93,8 @@ export class CitaController {
   }
 
   @Patch('citas/:id')
+  @UseGuards(RolesGuard)
+  @Roles(RoleType.ADMIN, RoleType.RECEPCIONISTA)
   @ApiOperation({ summary: 'Actualizar una cita' })
   @ApiResponse({
     status: 200,

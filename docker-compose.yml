@@ -1,0 +1,58 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: pet-health-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pet-health
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pet-health-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_NAME: pet-health
+      DB_SYNCHRONIZE: "true"
+      DB_LOGGING: "false"
+      DB_SSL: "false"
+      DB_SSL_CA_PATH: /app/CA
+      JWT_SECRET: change_me_for_local_docker
+      JWT_EXPIRES_IN: 1800
+      PORT: 3000
+      NODE_ENV: development
+      HORARIO_DURACION_MINUTOS: 30
+      HORARIO_HORA_INICIO: 7
+      HORARIO_HORA_FIN: 19
+      HASH_SALT_ROUNDS: 12
+      PAGINATION_DEFAULT_LIMIT: 20
+      PAGINATION_MAX_LIMIT: 20
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: noreply@pethealth.com
+      SMTP_SECURE: "false"
+    ports:
+      - "${API_PORT:-13000}:3000"
+
+volumes:
+  mysql_data:

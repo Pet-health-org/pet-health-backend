@@ -54,6 +54,19 @@ export class AuthService {
       );
     }
 
+    if (user.bloqueadoHasta && new Date() >= new Date(user.bloqueadoHasta)) {
+      await this.userRepository.update(user.id, {
+        intentosFallidos: 0,
+        bloqueadoHasta: null,
+      });
+      user.intentosFallidos = 0;
+      user.bloqueadoHasta = null;
+    }
+
+    if (user.status !== 'activo') {
+      throw new UnauthorizedException('Usuario inactivo o bloqueado');
+    }
+
     const isValid = await this.userAuth.comparePassword(
       loginDto.password,
       user.password,
@@ -82,10 +95,6 @@ export class AuthService {
       intentosFallidos: 0,
       bloqueadoHasta: null,
     });
-
-    if (user.status !== 'activo') {
-      throw new UnauthorizedException('Usuario inactivo o bloqueado');
-    }
 
     return {
       id: user.id,

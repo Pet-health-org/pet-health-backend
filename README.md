@@ -40,9 +40,12 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USERNAME=root
 DB_PASSWORD=changeme
-DB_NAME=pet_health_db
+DB_NAME=pet-health
 DB_SYNCHRONIZE=true
 DB_LOGGING=false
+DB_SSL=false
+DB_SSL_CA_PATH=CA
+DB_SSL_CA=
 
 JWT_SECRET=change_me_in_production
 JWT_EXPIRES_IN=1800
@@ -64,6 +67,8 @@ SMTP_SECURE=false
 ```
 
 `JWT_EXPIRES_IN` acepta segundos (`1800`) o sufijos (`30m`, `24h`, `7d`). Para HU-B13 se recomienda `1800` o `30m`.
+
+Si usas Aiven, no subas el certificado CA al repo. Usa `DB_SSL_CA` como variable secreta en Render o pega el PEM localmente en tu entorno de despliegue.
 
 ## Seed inicial
 
