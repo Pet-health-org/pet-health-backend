@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Rol } from '../modules/rol/entities/rol.entity';
@@ -21,6 +22,7 @@ export class SeederService implements OnModuleInit {
     @InjectRepository(Raza)
     private readonly razaRepository: Repository<Raza>,
     private readonly hashService: HashService,
+    private readonly configService: ConfigService,
   ) {}
 
   async onModuleInit() {
@@ -63,22 +65,26 @@ export class SeederService implements OnModuleInit {
       return;
     }
 
+    const adminEmail = this.configService.get<string>('seeder.adminEmail', 'admin@pethealth.com');
+    const adminUsername = this.configService.get<string>('seeder.adminUsername', 'admin');
+    const adminPassword = this.configService.get<string>('seeder.adminPassword', 'Admin123!');
+
     const existingAdmin = await this.userRepository.findOne({
-      where: { email: 'admin@pethealth.com' },
+      where: { email: adminEmail },
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await this.hashService.hash('Admin123!');
+      const hashedPassword = await this.hashService.hash(adminPassword);
       const adminUser = this.userRepository.create({
-        username: 'admin',
-        email: 'admin@pethealth.com',
+        username: adminUsername,
+        email: adminEmail,
         password: hashedPassword,
         rol: adminRol,
         status: UserStatus.ACTIVO,
         isActive: true,
       });
       await this.userRepository.save(adminUser);
-      console.log('Usuario admin creado: admin@pethealth.com / Admin123!');
+      console.log(`Usuario admin creado: ${adminEmail}`);
     }
   }
 

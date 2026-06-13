@@ -47,6 +47,11 @@ export const appConfig = registerAs('app', () => ({
   nodeEnv: process.env.NODE_ENV || 'development',
 }));
 
+export const corsConfig = registerAs('cors', () => ({
+  origin: process.env.CORS_ORIGIN || '*',
+  enabled: process.env.CORS_ENABLED === 'true' || process.env.NODE_ENV !== 'production',
+}));
+
 export const horarioConfig = registerAs('horario', () => ({
   duracionMinutos: parseInt(process.env.HORARIO_DURACION_MINUTOS || '30', 10),
   horaInicio: parseInt(process.env.HORARIO_HORA_INICIO || '7', 10),
@@ -71,14 +76,22 @@ export const smtpConfig = registerAs('smtp', () => ({
   secure: process.env.SMTP_SECURE === 'true',
 }));
 
+export const seederConfig = registerAs('seeder', () => ({
+  adminEmail: process.env.ADMIN_EMAIL || 'admin@pethealth.com',
+  adminUsername: process.env.ADMIN_USERNAME || 'admin',
+  adminPassword: process.env.ADMIN_PASSWORD || 'Admin123!',
+}));
+
 const configurations = [
   databaseConfig,
   jwtConfig,
   appConfig,
+  corsConfig,
   horarioConfig,
   hashConfig,
   paginationConfig,
   smtpConfig,
+  seederConfig,
 ];
 
 export default configurations;

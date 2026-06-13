@@ -34,6 +34,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port', 3000);
   const nodeEnv = configService.get<string>('app.nodeEnv', 'development');
+  const corsOrigin = configService.get<string>('cors.origin', '*');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -51,8 +52,8 @@ async function bootstrap() {
     }),
   );
 
-  if (nodeEnv !== 'production') {
-    app.enableCors();
+  if (configService.get<boolean>('cors.enabled')) {
+    app.enableCors({ origin: corsOrigin, credentials: true });
     const swaggerConfig = new DocumentBuilder()
       .setTitle('PetHealth API')
       .setDescription('API del sistema de gestión veterinaria PetHealth')
