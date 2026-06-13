@@ -1,10 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - produccion
   pull_request:
     branches:
       - main
@@ -49,8 +45,8 @@ jobs:
       PAGINATION_MAX_LIMIT: 20
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
-      SMTP_USER: ""
-      SMTP_PASSWORD: ""
+      SMTP_USER: ''
+      SMTP_PASSWORD: ''
       SMTP_FROM: noreply@pethealth.com
       SMTP_SECURE: false
 
