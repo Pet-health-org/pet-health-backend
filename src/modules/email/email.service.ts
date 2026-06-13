@@ -7,14 +7,17 @@ import * as path from 'node:path';
 export type TipoPlantilla =
   | 'confirmacion_cita'
   | 'recordatorio_cita'
-  | 'alerta_vacuna';
+  | 'alerta_vacuna'
+  | 'invitacion_integrante';
 
 export interface DatosPlantilla {
-  nombrePropietario: string;
-  nombreMascota: string;
-  fecha: string;
-  hora: string;
-  motivo: string;
+  nombrePropietario?: string;
+  nombreMascota?: string;
+  fecha?: string;
+  hora?: string;
+  motivo?: string;
+  codigoInvitacion?: string;
+  tipoAcceso?: string;
 }
 
 @Injectable()
@@ -51,11 +54,13 @@ export class EmailService {
 
     const reemplazar = (texto: string): string =>
       texto
-        .replace(/\{\{nombrePropietario\}\}/g, datos.nombrePropietario)
-        .replace(/\{\{nombreMascota\}\}/g, datos.nombreMascota)
-        .replace(/\{\{fecha\}\}/g, datos.fecha)
-        .replace(/\{\{hora\}\}/g, datos.hora)
-        .replace(/\{\{motivo\}\}/g, datos.motivo);
+        .replace(/\{\{nombrePropietario\}\}/g, datos.nombrePropietario || '')
+        .replace(/\{\{nombreMascota\}\}/g, datos.nombreMascota || '')
+        .replace(/\{\{fecha\}\}/g, datos.fecha || '')
+        .replace(/\{\{hora\}\}/g, datos.hora || '')
+        .replace(/\{\{motivo\}\}/g, datos.motivo || '')
+        .replace(/\{\{codigoInvitacion\}\}/g, datos.codigoInvitacion || '')
+        .replace(/\{\{tipoAcceso\}\}/g, datos.tipoAcceso || '');
 
     return {
       asunto: reemplazar(asunto),
@@ -70,11 +75,18 @@ export class EmailService {
   ): Promise<void> {
     const { asunto, cuerpo } = this.renderizarTemplate(tipo, datos);
 
-    await this.transporter.sendMail({
-      from: this.configService.get('smtp').from,
-      to: destino,
-      subject: asunto,
-      html: cuerpo,
-    });
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get('smtp').from,
+        to: destino,
+        subject: asunto,
+        html: cuerpo,
+      });
+      this.logger.log(`Correo enviado a ${destino} con asunto: ${asunto}`);
+    } catch (error) {
+      this.logger.error(`Error enviando correo a ${destino}: ${error.message}`);
+      this.logger.warn(`Simulando correo local: Datos: ${JSON.stringify(datos)}`);
+      // En entornos locales/desarrollo sin SMTP válido, no bloqueamos el flujo
+    }
   }
 }

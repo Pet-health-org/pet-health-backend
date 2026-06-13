@@ -65,16 +65,16 @@ export class SeederService implements OnModuleInit {
       return;
     }
 
-    const adminEmail = this.configService.get<string>('seeder.adminEmail', 'admin@pethealth.com');
-    const adminUsername = this.configService.get<string>('seeder.adminUsername', 'admin');
-    const adminPassword = this.configService.get<string>('seeder.adminPassword', 'Admin123!');
+    const adminEmail = this.configService.get<string>('seeder.adminEmail') || 'admin@pethealth.com';
+    const adminUsername = this.configService.get<string>('seeder.adminUsername') || 'admin';
+    const adminPassword = this.configService.get<string>('seeder.adminPassword') || 'Admin123!';
 
     const existingAdmin = await this.userRepository.findOne({
       where: { email: adminEmail },
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await this.hashService.hash(adminPassword);
+      const hashedPassword = await this.hashService.hash(adminPassword || 'admin');
       const adminUser = this.userRepository.create({
         username: adminUsername,
         email: adminEmail,
