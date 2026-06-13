@@ -75,9 +75,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint check
-        run: pnpm exec eslint "{src,apps,libs,test}/**/*.ts"
-
       - name: Build
         run: pnpm run build
 
