@@ -31,6 +31,7 @@ import { ConsultaModule } from './modules/consulta/consulta.module';
 import { VacunacionModule } from './modules/vacunacion/vacunacion.module';
 import { EmailModule } from './modules/email/email.module';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module';
+import { IntegranteModule } from './modules/integrante/integrante.module';
 import { SeederService } from './common/seeder.service';
 
 @Module({
@@ -61,6 +62,7 @@ import { SeederService } from './common/seeder.service';
     VacunacionModule,
     EmailModule,
     AuditoriaModule,
+    IntegranteModule,
   ],
   controllers: [AppController],
   providers: [AppService, SeederService],

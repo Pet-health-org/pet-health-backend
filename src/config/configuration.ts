@@ -49,7 +49,9 @@ export const appConfig = registerAs('app', () => ({
 
 export const corsConfig = registerAs('cors', () => ({
   origin: process.env.CORS_ORIGIN || '*',
-  enabled: process.env.CORS_ENABLED === 'true' || process.env.NODE_ENV !== 'production',
+  enabled:
+    process.env.CORS_ENABLED === 'true' ||
+    process.env.NODE_ENV !== 'production',
 }));
 
 export const horarioConfig = registerAs('horario', () => ({
@@ -77,9 +79,9 @@ export const smtpConfig = registerAs('smtp', () => ({
 }));
 
 export const seederConfig = registerAs('seeder', () => ({
-  adminEmail: process.env.ADMIN_EMAIL || 'admin@pethealth.com',
-  adminUsername: process.env.ADMIN_USERNAME || 'admin',
-  adminPassword: process.env.ADMIN_PASSWORD || 'Admin123!',
+  adminEmail: process.env.ADMIN_EMAIL,
+  adminUsername: process.env.ADMIN_USERNAME,
+  adminPassword: process.env.ADMIN_PASSWORD,
 }));
 
 const configurations = [

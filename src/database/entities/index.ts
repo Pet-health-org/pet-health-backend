@@ -18,6 +18,8 @@ import { EsquemaVacunacion } from '../../modules/vacunacion/entities/esquema-vac
 import { AlertaVacuna } from '../../modules/vacunacion/entities/alerta-vacuna.entity';
 import { Propietario } from '../../modules/propietario/entities/propietario.entity';
 import { Auditoria } from '../../modules/auditoria/entities/auditoria.entity';
+import { Invitacion } from '../../modules/integrante/entities/invitacion.entity';
+import { Integrante } from '../../modules/integrante/entities/integrante.entity';
 
 export const entities = [
   Rol,
@@ -40,6 +42,8 @@ export const entities = [
   AlertaVacuna,
   Propietario,
   Auditoria,
+  Invitacion,
+  Integrante,
 ];
 
 export type EntityClass =
@@ -62,4 +66,6 @@ export type EntityClass =
   | typeof EsquemaVacunacion
   | typeof AlertaVacuna
   | typeof Propietario
-  | typeof Auditoria;
+  | typeof Auditoria
+  | typeof Invitacion
+  | typeof Integrante;
