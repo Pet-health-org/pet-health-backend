@@ -76,19 +76,32 @@ export class EmailService {
     const apiKey = this.configService.get<string>('sendgrid.apiKey');
     const from = this.configService.get('smtp').from;
 
-    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: destino }] }],
-        from: { email: from },
-        subject: asunto,
-        content: [{ type: 'text/html', value: cuerpo }],
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: destino }] }],
+          from: { email: from },
+          subject: asunto,
+          content: [{ type: 'text/html', value: cuerpo }],
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`SendGrid error ${response.status}: ${errorBody}`);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -104,19 +117,23 @@ export class EmailService {
     const { asunto, cuerpo } = this.renderizarTemplate(tipo, datos);
     const sendgridApiKey = this.configService.get<string>('sendgrid.apiKey');
 
-    if (sendgridApiKey) {
-      await this.enviarViaSendGrid(destino, asunto, cuerpo);
-    } else if (this.transporter) {
-      await this.transporter.sendMail({
-        from: this.configService.get('smtp').from,
-        to: destino,
-        subject: asunto,
-        html: cuerpo,
-      });
-    } else {
-      throw new Error('No hay metodo de envio de correos configurado');
+    try {
+      if (sendgridApiKey) {
+        await this.enviarViaSendGrid(destino, asunto, cuerpo);
+      } else if (this.transporter) {
+        await this.transporter.sendMail({
+          from: this.configService.get('smtp').from,
+          to: destino,
+          subject: asunto,
+          html: cuerpo,
+        });
+      } else {
+        throw new Error('No hay metodo de envio de correos configurado');
+      }
+      this.logger.log(`Correo enviado a ${destino} | Asunto: ${asunto}`);
+    } catch (error: any) {
+      this.logger.error(`Error enviando correo a ${destino}: ${error.message}`);
+      throw error;
     }
-
-    this.logger.log(`Correo enviado a ${destino} | Asunto: ${asunto}`);
   }
 }
