@@ -26,7 +26,7 @@ export class EmailService {
   private asuntos: Record<string, string>;
 
   constructor(
-    @Inject('EMAIL_TRANSPORT') private readonly transporter: nodemailer.Transporter,
+    @Inject('EMAIL_TRANSPORT') private readonly transporter: nodemailer.Transporter | null,
     private readonly configService: ConfigService,
   ) {
     const asuntosPath = path.join(__dirname, 'handlebars', 'asuntos.json');
@@ -68,19 +68,54 @@ export class EmailService {
     };
   }
 
+  private async enviarViaSendGrid(
+    destino: string,
+    asunto: string,
+    cuerpo: string,
+  ): Promise<void> {
+    const apiKey = this.configService.get<string>('sendgrid.apiKey');
+    const from = this.configService.get('smtp').from;
+
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: destino }] }],
+        from: { email: from },
+        subject: asunto,
+        content: [{ type: 'text/html', value: cuerpo }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`SendGrid error ${response.status}: ${errorBody}`);
+    }
+  }
+
   async enviarCorreo(
     destino: string,
     tipo: TipoPlantilla,
     datos: DatosPlantilla,
   ): Promise<void> {
     const { asunto, cuerpo } = this.renderizarTemplate(tipo, datos);
+    const sendgridApiKey = this.configService.get<string>('sendgrid.apiKey');
 
-    await this.transporter.sendMail({
-      from: this.configService.get('smtp').from,
-      to: destino,
-      subject: asunto,
-      html: cuerpo,
-    });
+    if (sendgridApiKey) {
+      await this.enviarViaSendGrid(destino, asunto, cuerpo);
+    } else if (this.transporter) {
+      await this.transporter.sendMail({
+        from: this.configService.get('smtp').from,
+        to: destino,
+        subject: asunto,
+        html: cuerpo,
+      });
+    } else {
+      throw new Error('No hay metodo de envio de correos configurado');
+    }
 
     this.logger.log(`Correo enviado a ${destino} | Asunto: ${asunto}`);
   }

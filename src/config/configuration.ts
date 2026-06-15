@@ -78,6 +78,10 @@ export const smtpConfig = registerAs('smtp', () => ({
   secure: process.env.SMTP_SECURE === 'true',
 }));
 
+export const sendgridConfig = registerAs('sendgrid', () => ({
+  apiKey: process.env.SENDGRID_API_KEY || '',
+}));
+
 export const seederConfig = registerAs('seeder', () => ({
   adminEmail: process.env.ADMIN_EMAIL,
   adminUsername: process.env.ADMIN_USERNAME,
@@ -93,6 +97,7 @@ const configurations = [
   hashConfig,
   paginationConfig,
   smtpConfig,
+  sendgridConfig,
   seederConfig,
 ];
 
