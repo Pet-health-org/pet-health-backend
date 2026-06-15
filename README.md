@@ -58,12 +58,27 @@ HASH_SALT_ROUNDS=12
 PAGINATION_DEFAULT_LIMIT=20
 PAGINATION_MAX_LIMIT=20
 
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=smtp.sendgrid.net
 SMTP_PORT=587
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM=noreply@pethealth.com
+SMTP_USER=apikey
+SMTP_PASSWORD=SG.tu_api_key_de_sendgrid
+SMTP_FROM=angeltoro736@gmail.com
 SMTP_SECURE=false
+SENDGRID_API_KEY=SG.tu_api_key_de_sendgrid
+```
+
+> **Nota sobre envio de correos**: Render free tier bloquea puertos SMTP (25, 465, 587)
+> desde septiembre 2025. Por eso el proyecto usa **SendGrid HTTP API** (puerto 443)
+> en produccion. Si `SENDGRID_API_KEY` esta configurada, el servicio usa la API REST
+> de SendGrid. Si no, usa SMTP tradicional (para desarrollo local con Mailpit).
+
+### Desarrollo local con Docker
+```bash
+# Iniciar todo (API + MySQL + Mailpit)
+docker compose up -d --build
+
+# Mailpit queda en http://localhost:8025 para ver correos enviados
+# El SMTP_HOST se configura automaticamente a mailpit:1025
 ```
 
 `JWT_EXPIRES_IN` acepta segundos (`1800`) o sufijos (`30m`, `24h`, `7d`). Para HU-B13 se recomienda `1800` o `30m`.
