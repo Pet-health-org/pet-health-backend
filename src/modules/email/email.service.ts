@@ -102,11 +102,6 @@ export class EmailService {
     } finally {
       clearTimeout(timeoutId);
     }
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`SendGrid error ${response.status}: ${errorBody}`);
-    }
   }
 
   async enviarCorreo(
