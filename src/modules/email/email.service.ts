@@ -75,18 +75,13 @@ export class EmailService {
   ): Promise<void> {
     const { asunto, cuerpo } = this.renderizarTemplate(tipo, datos);
 
-    try {
-      await this.transporter.sendMail({
-        from: this.configService.get('smtp').from,
-        to: destino,
-        subject: asunto,
-        html: cuerpo,
-      });
-      this.logger.log(`Correo enviado a ${destino} con asunto: ${asunto}`);
-    } catch (error) {
-      this.logger.error(`Error enviando correo a ${destino}: ${error.message}`);
-      this.logger.warn(`Simulando correo local: Datos: ${JSON.stringify(datos)}`);
-      // En entornos locales/desarrollo sin SMTP válido, no bloqueamos el flujo
-    }
+    await this.transporter.sendMail({
+      from: this.configService.get('smtp').from,
+      to: destino,
+      subject: asunto,
+      html: cuerpo,
+    });
+
+    this.logger.log(`Correo enviado a ${destino} | Asunto: ${asunto}`);
   }
 }

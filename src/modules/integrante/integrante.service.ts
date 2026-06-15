@@ -9,6 +9,7 @@ import { Invitacion } from './entities/invitacion.entity';
 import { Integrante } from './entities/integrante.entity';
 import { InviteIntegranteDto } from './dto/invite-integrante.dto';
 import { RegisterIntegranteDto } from './dto/register-integrante.dto';
+import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -19,11 +20,12 @@ export class IntegranteService {
     private readonly invitacionRepository: Repository<Invitacion>,
     @InjectRepository(Integrante)
     private readonly integranteRepository: Repository<Integrante>,
+    private readonly emailService: EmailService,
   ) {}
 
   async invite(
     inviteDto: InviteIntegranteDto,
-  ): Promise<{ message: string; codigo: string }> {
+  ): Promise<{ message: string }> {
     const existingIntegrante = await this.integranteRepository.findOne({
       where: { email: inviteDto.email },
     });
@@ -53,7 +55,16 @@ export class IntegranteService {
 
     await this.invitacionRepository.save(invitacion);
 
-    return { message: 'Invitación generada con éxito', codigo };
+    await this.emailService.enviarCorreo(
+      inviteDto.email,
+      'invitacion_integrante',
+      {
+        codigoInvitacion: codigo,
+        tipoAcceso: inviteDto.tipoAcceso,
+      },
+    );
+
+    return { message: 'Invitación enviada con éxito' };
   }
 
   async register(registerDto: RegisterIntegranteDto): Promise<Integrante> {

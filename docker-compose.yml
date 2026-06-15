@@ -25,6 +25,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -53,6 +55,14 @@ services:
       SMTP_SECURE: 'false'
     ports:
       - '${API_PORT:-13000}:3000'
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: pet-health-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
 
 volumes:
   mysql_data:
