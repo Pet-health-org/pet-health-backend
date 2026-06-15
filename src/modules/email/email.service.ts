@@ -75,27 +75,13 @@ export class EmailService {
   ): Promise<void> {
     const { asunto, cuerpo } = this.renderizarTemplate(tipo, datos);
 
-    try {
-      const info = await this.transporter.sendMail({
-        from: this.configService.get('smtp').from,
-        to: destino,
-        subject: asunto,
-        html: cuerpo,
-      });
-      if (info.messageId) {
-        this.logger.log(`Correo enviado a ${destino} | ID: ${info.messageId}`);
-      } else {
-        this.logger.warn(
-          `Correo simulado (local) para ${destino}: ${JSON.stringify(datos)}`,
-        );
-      }
-    } catch (error) {
-      this.logger.error(
-        `Error enviando correo a ${destino}: ${error.message}`,
-      );
-      this.logger.warn(
-        `Usando fallback local. Datos: ${JSON.stringify(datos)}`,
-      );
-    }
+    await this.transporter.sendMail({
+      from: this.configService.get('smtp').from,
+      to: destino,
+      subject: asunto,
+      html: cuerpo,
+    });
+
+    this.logger.log(`Correo enviado a ${destino} | Asunto: ${asunto}`);
   }
 }

@@ -2,7 +2,6 @@ import {
   Injectable,
   BadRequestException,
   ConflictException,
-  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
@@ -16,8 +15,6 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class IntegranteService {
-  private readonly logger = new Logger(IntegranteService.name);
-
   constructor(
     @InjectRepository(Invitacion)
     private readonly invitacionRepository: Repository<Invitacion>,
@@ -58,20 +55,14 @@ export class IntegranteService {
 
     await this.invitacionRepository.save(invitacion);
 
-    try {
-      await this.emailService.enviarCorreo(
-        inviteDto.email,
-        'invitacion_integrante',
-        {
-          codigoInvitacion: codigo,
-          tipoAcceso: inviteDto.tipoAcceso,
-        },
-      );
-    } catch (error) {
-      this.logger.error(
-        `No se pudo enviar el correo de invitación a ${inviteDto.email}`,
-      );
-    }
+    await this.emailService.enviarCorreo(
+      inviteDto.email,
+      'invitacion_integrante',
+      {
+        codigoInvitacion: codigo,
+        tipoAcceso: inviteDto.tipoAcceso,
+      },
+    );
 
     return { message: 'Invitación enviada con éxito' };
   }
