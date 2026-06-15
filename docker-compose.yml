@@ -47,11 +47,11 @@ services:
       HASH_SALT_ROUNDS: 12
       PAGINATION_DEFAULT_LIMIT: 20
       PAGINATION_MAX_LIMIT: 20
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_USER: ''
+      SMTP_PASSWORD: ''
+      SMTP_FROM: noreply@pethealth.com
       SMTP_SECURE: 'false'
     ports:
       - '${API_PORT:-13000}:3000'
